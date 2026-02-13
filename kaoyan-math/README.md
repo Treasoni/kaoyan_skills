@@ -75,7 +75,7 @@ Kaoyan Math System 是一个基于 Claude Code 构建的 **考研数学学习系
 ---
 
 # 📂 推荐目录结构
-
+'''
 考研数学笔记/
 ├── 📑 索引.md
 ├── 📊 学习进度.md
@@ -83,6 +83,7 @@ Kaoyan Math System 是一个基于 Claude Code 构建的 **考研数学学习系
 ├── 高数/
 ├── 线代/
 └── 概率/
+'''
 
 
 ---
