@@ -1,7 +1,7 @@
 ---
 name: kaoyan-math
 description: This skill should be used when the user asks to generate/modify study notes for 考研数学 (Chinese graduate entrance math exam), specifically when the user provides existing notes and wants to create exam-oriented learning notes, or when the user provides feedback to update existing study notes. Now integrated with MemOS for persistent mistake tracking and cross-device synchronization.
-version: 3.0.0
+version: 3.1.0
 ---
 
 # 考研数学学习笔记生成技能 (Kaoyan Mathematics Note Generation Skill)
@@ -1286,6 +1286,250 @@ g'(x)=0意味着函数g(x)在该点的变化率为0，即g(x)在该点附近是"
 
 ---
 
+## 跨学科知识关联 (v3.1.0新增)
+
+### 数学→电子技术知识图谱
+
+本技能内置与电子技术基础的知识关联，学习数学时主动提示其在电子技术中的应用。
+
+```yaml
+CROSS_SUBJECT_KNOWLEDGE_GRAPH:
+  "复数运算":
+    linked_electronics:
+      - "频率响应分析"
+      - "交流电路"
+      - "滤波器设计"
+      - "阻抗计算"
+    link_type: prerequisite
+    importance: critical
+    reminder: "⚠️ 「复数运算」是「频率响应分析」的前置知识"
+    key_formulas:
+      - "jω表示法"
+      - "复数阻抗 Z = R + jX"
+
+  "微分方程":
+    linked_electronics:
+      - "暂态响应"
+      - "RC/RL电路"
+      - "一阶电路分析"
+    link_type: application
+    importance: high
+    reminder: "💡 「暂态响应」本质上是「微分方程」的应用"
+    key_formulas:
+      - "一阶RC: τ = RC"
+      - "uc(t) = U₀(1-e^(-t/τ))"
+
+  "积分":
+    linked_electronics:
+      - "RC充放电"
+      - "能量计算"
+      - "电容储能"
+    link_type: application
+    reminder: "「积分」在电容能量计算中的应用"
+
+  "拉普拉斯变换":
+    linked_electronics:
+      - "s域分析"
+      - "传递函数"
+      - "频域分析"
+    link_type: prerequisite
+    importance: high
+    reminder: "⚠️ 「拉普拉斯变换」是「传递函数」的基础"
+```
+
+### 跨学科提醒生成
+
+```python
+def generate_cross_subject_reminders(knowledge_point):
+    """生成跨学科提醒
+
+    Args:
+        knowledge_point: 当前数学知识点
+
+    Returns:
+        跨学科提醒列表
+    """
+    graph = CROSS_SUBJECT_KNOWLEDGE_GRAPH.get(knowledge_point, {})
+
+    reminders = []
+    linked = graph.get("linked_electronics", [])
+
+    if linked:
+        importance = graph.get("importance", "medium")
+        icon = "⚠️" if importance == "critical" else "💡"
+
+        reminders.append(
+            f"{icon} 此知识点在电子技术中的应用：{', '.join(linked[:3])}"
+        )
+
+        if graph.get("reminder"):
+            reminders.append(graph["reminder"])
+
+    return reminders
+```
+
+---
+
+## 调度信号处理 (v3.1.0新增)
+
+### 检查调度信号
+
+从kaoyan-plan接收调度信号并执行相应动作。
+
+```python
+def check_dispatch_signals(user_id):
+    """检查来自kaoyan-plan的调度信号"""
+    try:
+        signals = search_memory(
+            query=f"#dispatch_signal #target_kaoyan-math #user_{user_id}",
+            top_k=5
+        )
+
+        pending = []
+        for signal in signals:
+            if not signal.get("processed"):
+                pending.append(signal)
+
+        return pending
+    except Exception as e:
+        log_warning(f"Failed to check dispatch signals: {e}")
+        return []
+
+
+def process_dispatch_signal(signal):
+    """处理调度信号"""
+    action = signal.get("action")
+    context = signal.get("context", {})
+
+    if action == "high_difficulty_sop":
+        return {
+            "mode": "high_difficulty",
+            "difficulty": context.get("difficulty", "hard"),
+            "time_block": context.get("time_block", "3h"),
+            "instructions": "进入高难度数学学习模式，优先攻克薄弱知识点"
+        }
+
+    elif action == "cross_subject_reminder":
+        topic = context.get("topic")
+        return {
+            "mode": "cross_subject",
+            "topic": topic,
+            "related_electronics": context.get("related_electronics"),
+            "reminder": f"⚠️ 学习「{topic}」时，注意与电子技术的关联"
+        }
+
+    elif action == "weekly_error_analysis":
+        return {
+            "mode": "weekly_review",
+            "aggregate": context.get("aggregate", True)
+        }
+
+    return None
+```
+
+### 支持的调度动作
+
+| 动作名 | 说明 | 上下文参数 |
+|--------|------|------------|
+| `high_difficulty_sop` | 高难度数学SOP | `{difficulty, time_block}` |
+| `cross_subject_reminder` | 跨学科提醒 | `{topic, related_electronics}` |
+| `weekly_error_analysis` | 周日错误分析 | `{aggregate}` |
+
+---
+
+## 统一错误模型集成 (v3.1.0新增)
+
+### 学科标签
+
+所有错误记录添加学科标签以支持跨技能聚合。
+
+```python
+def save_mistake_with_subject_tag(mistake_data, user_id):
+    """保存错误记录（含学科标签）"""
+    mistake_data["subject"] = "math"
+    mistake_data["cross_subject_refs"] = find_cross_subject_refs(
+        mistake_data.get("knowledge_point")
+    )
+
+    try:
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "unified_mistake_record",
+                    "data": mistake_data
+                },
+                "tags": [
+                    "#mistake_record",
+                    "#subject_math",
+                    f"#kp_{mistake_data.get('knowledge_point', '')}",
+                    f"#mistake_type_{mistake_data.get('type', 'unknown')}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+    except Exception as e:
+        log_warning(f"Failed to save mistake: {e}")
+
+
+def find_cross_subject_refs(knowledge_point):
+    """查找跨学科关联"""
+    graph = CROSS_SUBJECT_KNOWLEDGE_GRAPH.get(knowledge_point, {})
+    return graph.get("linked_electronics", [])
+```
+
+### 错误记录模板更新
+
+```yaml
+mistake_record:
+  record_id: string
+  user_id: string
+  subject: math                        # 新增：学科标签
+  knowledge_point: string
+  date: date
+
+  mistake_info:
+    mistake_type: enum
+    original_understanding: string
+    correction: string
+
+  cross_subject_refs: [string]         # 新增：跨学科关联
+
+  tags:
+    - "#mistake_record"
+    - "#subject_math"                  # 新增：学科标签
+```
+
+---
+
+## 知识点卡片模板更新 (v3.1.0新增)
+
+### 新增字段
+
+```yaml
+knowledge_card:
+  card_id: string
+  user_id: string
+  knowledge_point: string
+  module: enum (高数 | 线代 | 概率)
+  mastery_level: enum
+  mistake_count: int
+
+  # v3.1.0 新增
+  cross_subject_links:
+    electronics: [string]              # 关联的电子技术知识点
+    importance: critical | high | medium | low
+    reminder: string                   # 跨学科提醒
+
+  review_data:
+    last_reviewed: date
+    next_review: date
+    review_count: int
+```
+
+---
+
 ## 验证标准
 
 ### 基础功能验证 (v2.0.0)
@@ -1324,6 +1568,13 @@ g'(x)=0意味着函数g(x)在该点的变化率为0，即g(x)在该点附近是"
 27. 超过30天未更新时提示刷新画像
 28. MemOS不可用时优雅降级为v2.0.0模式
 29. 向后兼容：v2.0.0笔记无需修改即可使用
+
+### 跨学科集成验证 (v3.1.0新增)
+30. ✅ 跨学科提醒生成（数学→电子技术）
+31. ✅ 调度信号接收和处理
+32. ✅ 统一错误模型学科标签
+33. ✅ 跨学科知识关联查询
+34. ✅ 知识点卡片包含cross_subject_links字段
 
 ---
 

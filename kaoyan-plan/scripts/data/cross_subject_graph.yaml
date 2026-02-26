@@ -1,0 +1,268 @@
+# 跨学科知识关联图谱
+# kaoyan-plan × kaoyan-math × kaoyan-english × kaoyan-electronics 跨技能协同
+# Version: 1.0.0
+
+# ========================================
+# 数学 → 电子技术 知识关联
+# ========================================
+math_to_electronics:
+  "复数运算":
+    linked_electronics:
+      - "频率响应分析"
+      - "交流电路"
+      - "滤波器设计"
+      - "阻抗计算"
+    link_type: prerequisite
+    importance: critical
+    reminder: "⚠️ 学习「{electronics}」时，复习数学「复数运算」会更清晰"
+    key_formulas:
+      - "jω表示法"
+      - "复数阻抗Z = R + jX"
+      - "幅频特性|H(jω)|"
+
+  "微分方程":
+    linked_electronics:
+      - "暂态响应"
+      - "RC/RL电路"
+      - "一阶电路分析"
+      - "二阶电路分析"
+    link_type: application
+    importance: high
+    reminder: "💡 「{electronics}」本质上是「微分方程」的应用"
+    key_formulas:
+      - "一阶RC: τ = RC"
+      - "uc(t) = U0(1-e^(-t/τ))"
+      - "时间常数τ的理解"
+
+  "积分":
+    linked_electronics:
+      - "RC充放电"
+      - "能量计算"
+      - "电容储能"
+      - "电感储能"
+    link_type: application
+    importance: medium
+    reminder: "「{electronics}」中涉及「积分」概念"
+    key_formulas:
+      - "Wc = (1/2)CU²"
+      - "WL = (1/2)LI²"
+
+  "拉普拉斯变换":
+    linked_electronics:
+      - "s域分析"
+      - "传递函数"
+      - "频域分析"
+    link_type: prerequisite
+    importance: high
+    reminder: "⚠️ 「{electronics}」需要「拉普拉斯变换」基础"
+    key_formulas:
+      - "H(s) = Uo(s)/Ui(s)"
+      - "极点零点分析"
+
+  "傅里叶级数":
+    linked_electronics:
+      - "频谱分析"
+      - "信号分解"
+      - "谐波分析"
+    link_type: application
+    importance: medium
+    reminder: "「{electronics}」信号处理中的「傅里叶级数」应用"
+
+  "矩阵运算":
+    linked_electronics:
+      - "多端口网络"
+      - "状态方程"
+      - "系统矩阵分析"
+    link_type: application
+    importance: medium
+    reminder: "「{electronics}」系统分析需要「矩阵运算」"
+
+# ========================================
+# 电子技术 → 数学 知识关联（反向）
+# ========================================
+electronics_to_math:
+  "频率响应":
+    linked_math:
+      - "复数运算"
+      - "幅频特性"
+      - "相频特性"
+      - "对数运算（波特图）"
+    link_type: application
+    reminder: "「频率响应」分析需要数学「复数运算」和「对数」基础"
+    exam_tip: "波特图绘制需要掌握对数坐标转换"
+
+  "暂态响应":
+    linked_math:
+      - "微分方程"
+      - "指数函数"
+      - "一阶方程求解"
+    link_type: application
+    reminder: "「暂态响应」本质是「微分方程」在电路中的应用"
+    exam_tip: "牢记时间常数τ的物理意义"
+
+  "滤波器设计":
+    linked_math:
+      - "复数运算"
+      - "拉普拉斯变换"
+      - "频率分析"
+    link_type: application
+    reminder: "「滤波器」设计依赖「复数」和「变换」"
+
+# ========================================
+# 英语 → 专业课 知识关联
+# ========================================
+english_to_major:
+  "阅读理解":
+    linked_major:
+      - "专业课文献阅读"
+      - "学术论文理解"
+    link_type: skill_transfer
+    reminder: "英语阅读能力有助于专业课文献理解"
+
+# ========================================
+# 调度触发规则
+# ========================================
+dispatch_rules:
+  # 高精力时段 → 数学/专业课高难度内容
+  high_energy_math_electronics:
+    condition: "chronotype == morning_person AND hour IN [8,12] AND fatigue < 0.4"
+    target_skill: "kaoyan-math"
+    fallback_skill: "kaoyan-electronics"
+    action: "high_difficulty_sop"
+    context:
+      difficulty: "hard"
+      time_block: "3h"
+    tags:
+      - "#dispatch_signal"
+      - "#high_energy"
+      - "#target_kaoyan-math"
+
+  # 疲劳检测 → 英语轻量复习
+  fatigue_english_review:
+    condition: "fatigue > 0.6"
+    target_skill: "kaoyan-english"
+    action: "vocabulary_review_mode"
+    context:
+      mode: "light"
+      duration: "30min"
+    tags:
+      - "#dispatch_signal"
+      - "#fatigue_mode"
+      - "#target_kaoyan-english"
+
+  # 数学欠账 → 英语压缩 → 时间转移
+  math_debt_english_compress:
+    condition: "math_debt_hours > 3 AND english_surplus > 0"
+    target_skill: "kaoyan-english"
+    action: "memory_compression_mode"
+    context:
+      compress_hours: 1
+      transfer_to: "math"
+    tags:
+      - "#dispatch_signal"
+      - "#debt_transfer"
+      - "#target_kaoyan-english"
+
+  # 跨学科提醒
+  cross_subject_reminder:
+    condition: "current_topic == '频率响应'"
+    target_skill: "kaoyan-math"
+    action: "cross_subject_reminder"
+    context:
+      topic: "复数运算"
+      related_electronics: "频率响应分析"
+    tags:
+      - "#cross_subject_link"
+      - "#math_electronics"
+
+  # 周日复盘
+  sunday_review:
+    condition: "weekday == sunday"
+    target_skill: "all"
+    action: "weekly_error_analysis"
+    context:
+      aggregate: true
+      generate_report: true
+    tags:
+      - "#weekly_review"
+      - "#all_skills"
+
+# ========================================
+# 跨学科前置知识检查
+# ========================================
+prerequisite_checks:
+  electronics_before_math:
+    "频率响应分析":
+      required_math:
+        - topic: "复数运算"
+          level: "basic"
+          check: "能正确进行复数加减乘除运算"
+        - topic: "对数运算"
+          level: "basic"
+          check: "能理解对数坐标"
+      warning: "⚠️ 开始「频率响应」前，建议先确认数学基础是否扎实"
+
+    "暂态响应":
+      required_math:
+        - topic: "微分方程"
+          level: "intermediate"
+          check: "能求解一阶线性微分方程"
+        - topic: "指数函数"
+          level: "basic"
+          check: "理解指数函数的图像和性质"
+      warning: "⚠️ 「暂态响应」需要微分方程基础"
+
+# ========================================
+# 统一错误类型映射
+# ========================================
+unified_mistake_types:
+  # 通用错误类型
+  common:
+    - type: "condition_omission"
+      display: "条件遗漏"
+      applies_to: ["math", "electronics", "english"]
+    - type: "concept_confusion"
+      display: "概念混淆"
+      applies_to: ["math", "electronics", "english"]
+
+  # 数学/电子技术专用
+  quantitative:
+    - type: "calculation_error"
+      display: "计算错误"
+      applies_to: ["math", "electronics"]
+    - type: "formula_misapplication"
+      display: "公式误用"
+      applies_to: ["math", "electronics"]
+
+  # 电子技术专用
+  electronics_specific:
+    - type: "circuit_misread"
+      display: "电路误读"
+      applies_to: ["electronics"]
+    - type: "parameter_confusion"
+      display: "参数混淆（如rbe与re）"
+      applies_to: ["electronics"]
+
+  # 英语专用
+  english_specific:
+    - type: "polysemy_error"
+      display: "多义词错误"
+      applies_to: ["english"]
+    - type: "collocation_error"
+      display: "搭配错误"
+      applies_to: ["english"]
+
+# ========================================
+# 元数据
+# ========================================
+metadata:
+  version: "1.0.0"
+  created_at: "2025-02-26"
+  updated_at: "2025-02-26"
+  author: "kaoyan-plan"
+  skills_involved:
+    - "kaoyan-plan"
+    - "kaoyan-math"
+    - "kaoyan-english"
+    - "kaoyan-electronics"
+  description: "考研四技能联合架构 - 跨学科知识关联图谱"

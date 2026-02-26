@@ -1,7 +1,7 @@
 ---
 name: kaoyan-english
 description: This skill should be used when the user asks to organize English vocabulary for 考研英语 (Chinese graduate entrance English exam), generate review plans from PDF exports, create spaced repetition schedules, take vocabulary quizzes, handle polysemy (rare word meanings), look up word information, or practice writing output in the context of 考研英语 exam preparation. Now integrated with MemOS for persistent vocabulary tracking and cross-device synchronization.
-version: 3.1.0
+version: 3.2.0
 ---
 
 # 考研英语复习技能 (Kaoyan English Review Skill)
@@ -1514,6 +1514,235 @@ test_record:
 
 ---
 
+## 记忆压缩模式 (v3.2.0新增)
+
+当kaoyan-plan检测到其他科目欠账时，可触发英语记忆压缩模式，将英语学习时间压缩转移给其他科目。
+
+### 压缩策略
+
+```python
+def activate_memory_compression_mode(context):
+    """激活记忆压缩模式
+
+    Args:
+        context: 压缩上下文，包含compress_hours, transfer_to等
+
+    Returns:
+        压缩后的学习计划
+    """
+    compress_hours = context.get("compress_hours", 1)
+    transfer_to = context.get("transfer_to", "math")
+
+    return {
+        "mode": "memory_compression",
+        "original_hours": get_planned_english_hours(),
+        "compressed_hours": compress_hours,
+        "transfer_to": transfer_to,
+        "strategy": {
+            "reduce_new_words": True,           # 减少新词量
+            "focus_polysemy_only": True,        # 只复习僻义词
+            "skip_context_article": True,       # 跳过语境文章生成
+            "use_quick_review": True            # 使用快速复习模式
+        },
+        "message": f"⚠️ 英语时间压缩{compress_hours}小时，转移至{transfer_to}"
+    }
+```
+
+### 压缩模式下的调整
+
+| 功能 | 正常模式 | 压缩模式 |
+|------|----------|----------|
+| 每日新词 | 50个 | 20个 |
+| 复习重点 | 均衡 | 仅僻义词+高频词 |
+| 语境文章 | 生成 | 跳过 |
+| 测试 | 完整 | 仅快速测试 |
+| 写作训练 | 包含 | 跳过 |
+
+---
+
+## 调度信号处理 (v3.2.0新增)
+
+### 检查调度信号
+
+从kaoyan-plan接收调度信号并执行相应动作。
+
+```python
+def check_dispatch_signals(user_id):
+    """检查来自kaoyan-plan的调度信号"""
+    try:
+        signals = search_memory(
+            query=f"#dispatch_signal #target_kaoyan-english #user_{user_id}",
+            top_k=5
+        )
+
+        pending = []
+        for signal in signals:
+            if not signal.get("processed"):
+                pending.append(signal)
+
+        return pending
+    except Exception as e:
+        log_warning(f"Failed to check dispatch signals: {e}")
+        return []
+
+
+def process_dispatch_signal(signal):
+    """处理调度信号"""
+    action = signal.get("action")
+    context = signal.get("context", {})
+
+    if action == "vocabulary_review_mode":
+        mode = context.get("mode", "light")
+        duration = context.get("duration", "30min")
+        return {
+            "mode": "light_review",
+            "duration": duration,
+            "focus": "polysemy_words",
+            "instructions": f"进入轻量词汇复习模式（{duration}），仅复习僻义词"
+        }
+
+    elif action == "memory_compression_mode":
+        return activate_memory_compression_mode(context)
+
+    elif action == "polysemy_focus":
+        count = context.get("count", 20)
+        return {
+            "mode": "polysemy_focus",
+            "word_count": count,
+            "instructions": f"进入僻义词专项训练模式，复习{count}个僻义词"
+        }
+
+    elif action == "weekly_error_analysis":
+        return {
+            "mode": "weekly_review",
+            "aggregate": context.get("aggregate", True)
+        }
+
+    return None
+```
+
+### 支持的调度动作
+
+| 动作名 | 说明 | 上下文参数 |
+|--------|------|------------|
+| `vocabulary_review_mode` | 轻量词汇复习 | `{mode, duration}` |
+| `memory_compression_mode` | 记忆压缩模式 | `{compress_hours, transfer_to}` |
+| `polysemy_focus` | 僻义词专项 | `{focus, count}` |
+| `weekly_error_analysis` | 周日错误分析 | `{aggregate}` |
+
+---
+
+## 动态权重响应 (v3.2.0新增)
+
+根据考试倒计时阶段自动调整词汇学习策略。
+
+### 阶段词汇目标
+
+```python
+def get_phase_vocabulary_target(days_to_exam):
+    """根据阶段获取词汇学习目标"""
+
+    if days_to_exam > 300:        # 基础期
+        return {
+            "daily_new_words": 50,
+            "review_ratio": 0.3,
+            "focus": "词汇积累",
+            "polysemy_weight": 1.0
+        }
+
+    elif days_to_exam > 180:      # 强化期
+        return {
+            "daily_new_words": 40,
+            "review_ratio": 0.5,
+            "focus": "僻义词+真题语境",
+            "polysemy_weight": 1.2
+        }
+
+    elif days_to_exam > 90:       # 十月强化期
+        return {
+            "daily_new_words": 30,
+            "review_ratio": 0.6,
+            "focus": "僻义词强化",
+            "polysemy_weight": 1.5
+        }
+
+    elif days_to_exam > 30:       # 冲刺期
+        return {
+            "daily_new_words": 10,
+            "review_ratio": 0.9,
+            "focus": "高频词+僻义词",
+            "polysemy_weight": 2.0
+        }
+
+    else:                         # 极限冲刺
+        return {
+            "daily_new_words": 0,
+            "review_ratio": 1.0,
+            "focus": "全部复习",
+            "polysemy_weight": 2.0
+        }
+```
+
+### 阶段策略表
+
+| 阶段 | 天数 | 每日新词 | 复习比例 | 僻义权重 |
+|------|------|----------|----------|----------|
+| 基础期 | >300 | 50 | 30% | 1.0x |
+| 强化期 | 180-300 | 40 | 50% | 1.2x |
+| 十月强化期 | 90-180 | 30 | 60% | 1.5x |
+| 冲刺期 | 30-90 | 10 | 90% | 2.0x |
+| 极限冲刺 | <30 | 0 | 100% | 2.0x |
+
+---
+
+## 统一错误模型集成 (v3.2.0新增)
+
+### 学科标签
+
+所有错误记录添加学科标签以支持跨技能聚合。
+
+```python
+def save_unified_english_mistake(mistake_data, user_id):
+    """保存英语错误记录（统一格式）"""
+    mistake_data["subject"] = "english"
+
+    # 英语专用错误类型
+    if mistake_data.get("type") == "polysemy_error":
+        mistake_data["tags"].append("#polysemy_critical")
+
+    try:
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "unified_mistake_record",
+                    "data": mistake_data
+                },
+                "tags": [
+                    "#mistake_record",
+                    "#subject_english",
+                    f"#word_{mistake_data.get('word', '')}",
+                    f"#mistake_type_{mistake_data.get('type', 'unknown')}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+    except Exception as e:
+        log_warning(f"Failed to save mistake: {e}")
+```
+
+### 英语专用错误类型
+
+| 错误类型 | 说明 | 标签 |
+|----------|------|------|
+| `polysemy_error` | 多义词错误 | `#polysemy_critical` |
+| `collocation_error` | 搭配错误 | `#collocation` |
+| `condition_omission` | 条件遗漏 | `#condition` |
+| `concept_confusion` | 概念混淆 | `#concept` |
+
+---
+
 ## 验证标准
 
 1. 能够从用户提供的PDF中提取单词列表
@@ -1530,6 +1759,13 @@ test_record:
 12. 触发条件准确无误
 13. **警告格式与kaoyan-math保持一致（⚠️图标）**
 14. **例题格式与kaoyan-math保持一致（[!example] callout）**
+
+### 跨技能集成验证 (v3.2.0新增)
+15. ✅ 记忆压缩模式激活
+16. ✅ 调度信号接收和处理
+17. ✅ 疲劳轻量模式响应
+18. ✅ 阶段词汇目标调整
+19. ✅ 统一错误模型学科标签
 
 ---
 

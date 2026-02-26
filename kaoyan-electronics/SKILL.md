@@ -1,7 +1,7 @@
 ---
 name: kaoyan-electronics
 description: 湖南大学822电子技术基础考研学习技能 - 支持电路图智能解析、典型题型SOP库、知识图谱主动关联、MemOS记忆追踪
-version: 1.1.0
+version: 1.2.0
 author: Claude Code
 dependencies:
   - MemOS集成
@@ -885,6 +885,287 @@ ADC/DAC:
 
 ---
 
+## 数学前置检查 (v1.2.0新增)
+
+学习电子技术某些内容前，自动检查数学基础是否扎实。
+
+### 前置知识映射
+
+```yaml
+MATH_PREREQUISITES:
+  "频率响应分析":
+    required_math:
+      - topic: "复数运算"
+        level: "basic"
+        check: "能正确进行复数加减乘除运算"
+        refresher: "复数运算回顾：j²=-1, Z=R+jX"
+      - topic: "对数运算"
+        level: "basic"
+        check: "能理解对数坐标（波特图）"
+        refresher: "对数坐标：20log|H(jω)|"
+    warning: "⚠️ 开始「频率响应」前，建议先确认数学基础是否扎实"
+
+  "暂态响应":
+    required_math:
+      - topic: "微分方程"
+        level: "intermediate"
+        check: "能求解一阶线性微分方程"
+        refresher: "一阶RC方程：τ·du/dt + u = U"
+      - topic: "指数函数"
+        level: "basic"
+        check: "理解指数函数的图像和性质"
+        refresher: "指数衰减：e^(-t/τ)"
+    warning: "⚠️ 「暂态响应」需要微分方程基础"
+
+  "滤波器设计":
+    required_math:
+      - topic: "拉普拉斯变换"
+        level: "intermediate"
+        check: "理解s域分析"
+        refresher: "传递函数：H(s)=Uo(s)/Ui(s)"
+    warning: "⚠️ 「滤波器设计」需要拉普拉斯变换基础"
+```
+
+### 前置检查函数
+
+```python
+def check_math_prerequisites(topic, user_context):
+    """检查数学前置知识
+
+    Args:
+        topic: 要学习的电子技术主题
+        user_context: 用户上下文（含数学学习记录）
+
+    Returns:
+        前置检查结果和建议
+    """
+    prereqs = MATH_PREREQUISITES.get(topic)
+
+    if not prereqs:
+        return {"needed": False}
+
+    results = []
+    for req in prereqs["required_math"]:
+        math_topic = req["topic"]
+        # 检查用户数学掌握程度
+        mastery = get_math_mastery_level(user_context, math_topic)
+
+        results.append({
+            "topic": math_topic,
+            "required_level": req["level"],
+            "current_level": mastery,
+            "passed": mastery >= req["level"],
+            "refresher": req["refresher"]
+        })
+
+    all_passed = all(r["passed"] for r in results)
+
+    return {
+        "needed": True,
+        "topic": topic,
+        "warning": prereqs["warning"] if not all_passed else None,
+        "results": results,
+        "all_passed": all_passed
+    }
+```
+
+---
+
+## 跨学科提醒 (v1.2.0新增)
+
+### 数学关联提醒
+
+学习电子技术时，主动提示相关的数学知识。
+
+```python
+def generate_math_reminder(electronics_topic):
+    """生成数学关联提醒
+
+    Args:
+        electronics_topic: 当前学习的电子技术主题
+
+    Returns:
+        数学关联提醒
+    """
+    reminders = {
+        "频率响应": {
+            "math_topic": "复数运算",
+            "reminder": "⚠️ 「频率响应」分析需要「复数运算」基础",
+            "key_point": "阻抗 Z = R + jX，幅值 |Z| = √(R²+X²)",
+            "exam_tip": "波特图绘制需要掌握对数坐标转换"
+        },
+        "暂态响应": {
+            "math_topic": "微分方程",
+            "reminder": "💡 「暂态响应」本质是「微分方程」在电路中的应用",
+            "key_point": "时间常数 τ = RC，uc(t) = U₀(1-e^(-t/τ))",
+            "exam_tip": "牢记τ的物理意义：达到63.2%终值的时间"
+        },
+        "RC电路": {
+            "math_topic": "积分",
+            "reminder": "「RC电路」充放电涉及「积分」概念",
+            "key_point": "电容储能 W = (1/2)CU²"
+        }
+    }
+
+    return reminders.get(electronics_topic)
+```
+
+### 跨学科提醒显示
+
+```markdown
+## ⚠️ 跨学科提醒
+
+> 当前学习：**频率响应分析**
+>
+> **数学基础**：复数运算
+>
+> **关键点**：
+> - 阻抗 Z = R + jX
+> - 幅值 |Z| = √(R²+X²)
+> - 相角 φ = arctan(X/R)
+>
+> **考试提示**：波特图绘制需要掌握对数坐标转换
+>
+> 💡 建议先复习 [[复数运算]] 再深入学习频率响应
+```
+
+---
+
+## 统一错误模型集成 (v1.2.0新增)
+
+### 学科标签
+
+所有错误记录添加学科标签以支持跨技能聚合。
+
+```python
+def save_unified_electronics_mistake(mistake_data, user_id):
+    """保存电子技术错误记录（统一格式）"""
+    mistake_data["subject"] = "electronics"
+
+    # 电子技术专用错误类型
+    if mistake_data.get("type") == "circuit_misread":
+        mistake_data["tags"].append("#circuit_misread")
+    elif mistake_data.get("type") == "parameter_confusion":
+        mistake_data["tags"].append("#param_confusion")
+
+    # 查找数学关联
+    cross_refs = find_math_refs(mistake_data.get("knowledge_point"))
+    if cross_refs:
+        mistake_data["cross_subject_refs"] = cross_refs
+
+    try:
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "unified_mistake_record",
+                    "data": mistake_data
+                },
+                "tags": [
+                    "#mistake_record",
+                    "#subject_electronics",
+                    f"#kp_{mistake_data.get('knowledge_point', '')}",
+                    f"#mistake_type_{mistake_data.get('type', 'unknown')}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+    except Exception as e:
+        log_warning(f"Failed to save mistake: {e}")
+
+
+def find_math_refs(electronics_topic):
+    """查找与电子技术相关的数学知识点"""
+    refs = {
+        "频率响应": ["复数运算", "对数运算"],
+        "暂态响应": ["微分方程", "指数函数"],
+        "滤波器设计": ["拉普拉斯变换", "复数运算"],
+        "RC电路": ["积分", "微分方程"],
+        "RL电路": ["微分方程", "指数函数"]
+    }
+    return refs.get(electronics_topic, [])
+```
+
+### 电子技术专用错误类型
+
+| 错误类型 | 说明 | 标签 |
+|----------|------|------|
+| `circuit_misread` | 电路误读 | `#circuit_misread` |
+| `parameter_confusion` | 参数混淆（如rbe与re） | `#param_confusion` |
+| `calculation_error` | 计算错误 | `#calculation` |
+| `condition_omission` | 条件遗漏 | `#condition` |
+| `concept_confusion` | 概念混淆 | `#concept` |
+
+---
+
+## 调度信号处理 (v1.2.0新增)
+
+### 检查调度信号
+
+从kaoyan-plan接收调度信号并执行相应动作。
+
+```python
+def check_dispatch_signals(user_id):
+    """检查来自kaoyan-plan的调度信号"""
+    try:
+        signals = search_memory(
+            query=f"#dispatch_signal #target_kaoyan-electronics #user_{user_id}",
+            top_k=5
+        )
+
+        pending = []
+        for signal in signals:
+            if not signal.get("processed"):
+                pending.append(signal)
+
+        return pending
+    except Exception as e:
+        log_warning(f"Failed to check dispatch signals: {e}")
+        return []
+
+
+def process_dispatch_signal(signal):
+    """处理调度信号"""
+    action = signal.get("action")
+    context = signal.get("context", {})
+
+    if action == "check_math_prerequisites":
+        topic = context.get("topic")
+        return {
+            "mode": "prerequisite_check",
+            "topic": topic,
+            "required_math": context.get("required_math", []),
+            "instructions": f"检查学习「{topic}」所需的数学基础"
+        }
+
+    elif action == "circuit_analysis_sop":
+        circuit_type = context.get("circuit_type")
+        return {
+            "mode": "circuit_analysis",
+            "circuit_type": circuit_type,
+            "instructions": f"使用标准SOP分析{circuit_type}"
+        }
+
+    elif action == "weekly_error_analysis":
+        return {
+            "mode": "weekly_review",
+            "aggregate": context.get("aggregate", True)
+        }
+
+    return None
+```
+
+### 支持的调度动作
+
+| 动作名 | 说明 | 上下文参数 |
+|--------|------|------------|
+| `check_math_prerequisites` | 数学前置检查 | `{topic, required_math}` |
+| `circuit_analysis_sop` | 电路分析SOP | `{circuit_type}` |
+| `weekly_error_analysis` | 周日错误分析 | `{aggregate}` |
+
+---
+
 ## 实例演示
 
 ### 示例1: 电路图解析
@@ -1065,6 +1346,13 @@ $$
 - [ ] 验证所有电路公式正确渲染
 - [ ] 验证真值表格式正确
 
+### 跨技能集成验证 (v1.2.0新增)
+- [ ] 数学前置检查功能
+- [ ] 跨学科提醒显示
+- [ ] 统一错误模型学科标签
+- [ ] 调度信号接收和处理
+- [ ] 跨学科知识关联查询
+
 ---
 
 ## 技术实现要点
@@ -1078,6 +1366,13 @@ $$
 ---
 
 ## 版本历史
+
+- **v1.2.0** (2025-02-26): 跨技能联合架构版
+  - 数学前置检查功能
+  - 跨学科提醒（数学↔电子技术）
+  - 统一错误模型集成
+  - 调度信号处理
+  - 跨学科知识关联
 
 - **v1.1.0** (2025-02-26): 实战优化版
   - 康华光教材符号体系适配
