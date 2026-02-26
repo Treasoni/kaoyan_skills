@@ -1,0 +1,653 @@
+# 822电子技术基础知识图谱
+# 湖南大学考研专用
+
+# 模电知识图谱
+模拟电路:
+  基本电子器件:
+    name: "基本电子器件"
+    chapter: 1
+    difficulty: 3
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "电路基础"
+    combinations:
+      - "基本放大器"
+      - "整流电路"
+    applications:
+      - "电源电路"
+      - "放大电路"
+    cross_chapter_prompts:
+      - "注意：二极管单向导电性是整流的基础"
+      - "提醒：BJT的三个工作区（截止、放大、饱和）要牢记"
+      - "关联：FET与BJT的特性对比是常考点"
+    sub_topics:
+      - 二极管特性
+      - 稳压管特性
+      - BJT特性曲线
+      - FET特性曲线
+      - 器件参数含义
+
+  基本放大器:
+    name: "基本放大器"
+    chapter: 2
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "基本电子器件"
+      - "电路分析基础"
+    combinations:
+      - "多级放大"
+      - "负反馈放大器"
+    applications:
+      - "差分放大"
+      - "功率放大"
+      - "集成运放"
+    cross_chapter_prompts:
+      - "注意：掌握三种基本组态（共射/共基/共集）的对比"
+      - "提醒：静态分析和动态分析要分开进行，不要混淆"
+      - "重点：$A_u, R_i, R_o$的计算是必考内容"
+      - "关联：多级放大器的总增益等于各级增益之积"
+    sub_topics:
+      - 共射放大电路
+      - 共集放大电路
+      - 共基放大电路
+      - 静态工作点
+      - 微变等效电路
+      - 频率响应
+
+  差分放大器:
+    name: "差分放大器"
+    chapter: 3
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "基本放大器"
+      - "对称性概念"
+    combinations:
+      - "集成运放"
+      - "功率放大器"
+    applications:
+      - "直流放大"
+      - "抑制共模干扰"
+      - "集成运放输入级"
+    cross_chapter_prompts:
+      - "注意：共模抑制比$K_{CMRR}$是关键指标"
+      - "提醒：掌握双入双出、单入双出等四种接法的区别"
+      - "重点：差模增益和共模增益的计算"
+      - "关联：差分放大是集成运放的基础"
+    sub_topics:
+      - 差模信号
+      - 共模信号
+      - 共模抑制比
+      - 四种接法
+      - 双端输出
+      - 单端输出
+
+  功率放大器:
+    name: "功率放大器"
+    chapter: 4
+    difficulty: 3
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "基本放大器"
+      - "图解法"
+    combinations:
+      - "OCL电路"
+      - "OTL电路"
+    applications:
+      - "音频放大"
+      - "电机驱动"
+      - "射频放大"
+    cross_chapter_prompts:
+      - "注意：甲类、乙类、甲乙类的效率对比是常考点"
+      - "提醒：交越失真的产生原因和消除方法"
+      - "重点：$P_o, P_V, P_T, \eta$的计算"
+      - "关联：功率放大管的安全工作区"
+    sub_topics:
+      - 甲类功放
+      - 乙类功放
+      - 甲乙类功放
+      - OCL电路
+      - OTL电路
+      - 交越失真
+      - 效率计算
+      - 管耗计算
+
+  集成运放:
+    name: "集成运放"
+    chapter: 5
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "差分放大"
+      - "负反馈"
+    combinations:
+      - "运算电路"
+      - "有源滤波"
+      - "电压比较器"
+    applications:
+      - "信号运算"
+      - "信号处理"
+      - "波形产生"
+    cross_chapter_prompts:
+      - "注意：虚短虚断是解题关键，必须牢记"
+      - "提醒：线性应用和非线性应用要区分"
+      - "重点：比例、加法、减法、积分、微分运算"
+      - "关联：运放是模电的核心器件，应用广泛"
+    sub_topics:
+      - 虚短
+      - 虚断
+      - 比例运算
+      - 加法运算
+      - 减法运算
+      - 积分微分
+      - 有源滤波
+      - 电压比较器
+
+  负反馈放大器:
+    name: "负反馈放大器"
+    chapter: 6
+    difficulty: 5
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "基本放大器"
+      - "频率响应"
+    combinations:
+      - "运算电路"
+      - "波形产生电路"
+    applications:
+      - "稳定增益"
+      - "展宽频带"
+      - "减小失真"
+    cross_chapter_prompts:
+      - "注意：深度负反馈是高频考点，$A_f \\approx 1/F$"
+      - "提醒：反馈类型判断是难点，需要大量练习"
+      - "重点：四种组态的判断方法（电压/电流、串联/并联）"
+      - "关联：负反馈改善性能的本质是牺牲增益"
+      - "记忆：短路输出端法判断电压/电流反馈"
+    sub_topics:
+      - 反馈类型判断
+      - 电压反馈
+      - 电流反馈
+      - 串联反馈
+      - 并联反馈
+      - 深度负反馈
+      - 反馈深度
+
+  波形产生电路:
+    name: "波形产生电路"
+    chapter: 7
+    difficulty: 4
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "集成运放"
+      - "正反馈"
+    combinations:
+      - "正弦波振荡"
+      - "非正弦波产生"
+    applications:
+      - "信号源"
+      - "时钟发生"
+      - "函数发生器"
+    cross_chapter_prompts:
+      - "注意：起振条件$|AF| \\geq 1$和平衡条件$|AF| = 1$"
+      - "提醒：相位条件$\\varphi_A + \\varphi_F = 2n\\pi$"
+      - "重点：RC、LC、石英晶体振荡器的特点和频率计算"
+      - "关联：振荡器是正反馈的典型应用"
+    sub_topics:
+      - 正弦波振荡
+      - RC振荡器
+      - LC振荡器
+      - 石英晶体振荡
+      - 方波发生
+      - 三角波发生
+      - 起振条件
+
+  稳压电源:
+    name: "线性稳压电源"
+    chapter: 8
+    difficulty: 3
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "二极管特性"
+      - "运算放大器"
+      - "负反馈"
+    combinations:
+      - "整流电路"
+      - "滤波电路"
+      - "稳压电路"
+    applications:
+      - "直流电源"
+      - "适配器"
+      - "实验室电源"
+    cross_chapter_prompts:
+      - "注意：稳压系数$S_r$和输出电阻$R_o$的计算"
+      - "提醒：串联型稳压电源的调整管工作在线性区"
+      - "重点：整流、滤波、稳压各部分的作用和参数"
+      - "关联：集成稳压器（78xx系列）的应用"
+    sub_topics:
+      - 单相桥式整流
+      - 电容滤波
+      - 电感滤波
+      - 串联型稳压
+      - 稳压系数
+      - 输出电阻
+
+# 数电知识图谱
+数字电路:
+  数制与代码:
+    name: "数制与代码"
+    chapter: 1
+    difficulty: 2
+    importance: 3
+    exam_frequency: "低"
+    prerequisites:
+      - "数学基础"
+    combinations:
+      - "逻辑运算"
+      - "编码器"
+    applications:
+      - "计算机表示"
+      - "数字系统"
+    cross_chapter_prompts:
+      - "注意：二进制、十进制、十六进制之间的转换"
+      - "提醒：8421BCD码是最常用的编码"
+      - "关联：数制转换是后续章节的基础"
+    sub_topics:
+      - 二进制
+      - 十进制
+      - 十六进制
+      - BCD码
+      - 格雷码
+      - 补码
+
+  逻辑运算与化简:
+    name: "逻辑运算与化简"
+    chapter: 2
+    difficulty: 3
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "数制与代码"
+      - "逻辑代数基础"
+    combinations:
+      - "组合逻辑设计"
+      - "PLA设计"
+    applications:
+      - "逻辑化简"
+      - "逻辑设计"
+    cross_chapter_prompts:
+      - "注意：卡诺图适用于4-6变量函数"
+      - "提醒：无关项的处理是重要考点，可以简化结果"
+      - "重点：代数化简法和卡诺图化简法都要掌握"
+      - "关联：化简后要用与非门等实现"
+    sub_topics:
+      - 基本逻辑运算
+      - 逻辑代数公式
+      - 代数化简
+      - 卡诺图化简
+      - 无关项
+      - 最简式
+
+  逻辑门:
+    name: "逻辑门"
+    chapter: 2
+    difficulty: 2
+    importance: 4
+    exam_frequency: "低"
+    prerequisites:
+      - "逻辑运算"
+    combinations:
+      - "组合逻辑电路"
+      - "触发器"
+    applications:
+      - "逻辑电路"
+      - "数字系统"
+    cross_chapter_prompts:
+      - "注意：与门、或门、非门、与非门、或非门、异或门的符号和表达式"
+      - "提醒：正逻辑和负逻辑的概念"
+      - "关联：逻辑门是数字电路的基本单元"
+    sub_topics:
+      - 与门
+      - 或门
+      - 非门
+      - 与非门
+      - 或非门
+      - 异或门
+      - 三态门
+      - OD门
+
+  组合逻辑电路:
+    name: "组合逻辑电路"
+    chapter: 3
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "逻辑门"
+      - "逻辑化简"
+    combinations:
+      - "编码器"
+      - "译码器"
+      - "选择器"
+      - "比较器"
+      - "运算器"
+    applications:
+      - "数据处理"
+      - "地址译码"
+      - "数据选择"
+    cross_chapter_prompts:
+      - "注意：分析从输入到输出，设计从输出到输入"
+      - "提醒：使能端的作用要掌握"
+      - "重点：编码器、译码器、选择器的分析设计"
+      - "关联：译码器加门电路可以实现任意逻辑函数"
+    sub_topics:
+      - 组合逻辑分析
+      - 组合逻辑设计
+      - 编码器
+      - 译码器
+      - 数据选择器
+      - 加法器
+      - 数值比较器
+      - 竞争冒险
+
+  触发器:
+    name: "触发器"
+    chapter: 4
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "逻辑门"
+      - "时钟概念"
+    combinations:
+      - "时序逻辑"
+      - "计数器"
+    applications:
+      - "数据存储"
+      - "状态记忆"
+    cross_chapter_prompts:
+      - "注意：各触发器特性方程要牢记：RS/JK/D/T/T'"
+      - "提醒：异步置数端优先级最高，不受时钟控制"
+      - "重点：JK触发器和D触发器最常用"
+      - "关联：触发器是时序逻辑的基础"
+    sub_topics:
+      - RS触发器
+      - JK触发器
+      - D触发器
+      - T触发器
+      - 特性方程
+      - 时钟触发
+      - 异步置数
+
+  时序逻辑电路:
+    name: "时序逻辑电路"
+    chapter: 5
+    difficulty: 5
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "触发器"
+      - "组合逻辑"
+    combinations:
+      - "计数器"
+      - "移位寄存器"
+      - "序列检测器"
+    applications:
+      - "频率测量"
+      - "序列检测"
+      - "控制电路"
+    cross_chapter_prompts:
+      - "注意：同步时序和异步时序的区别"
+      - "提醒：自启动检查必不可少，无效状态必须能进入有效循环"
+      - "重点：驱动方程、状态方程、输出方程的写法"
+      - "关联：时序逻辑设计是难点，需要多练习"
+    sub_topics:
+      - 同步时序逻辑
+      - 异步时序逻辑
+      - 时序逻辑分析
+      - 时序逻辑设计
+      - 状态转换图
+      - 自启动
+
+  计数器:
+    name: "计数器"
+    chapter: 5
+    difficulty: 4
+    importance: 5
+    exam_frequency: "高"
+    prerequisites:
+      - "触发器特性"
+      - "时序逻辑"
+    combinations:
+      - "译码器"
+      - "显示电路"
+      - "分频器"
+    applications:
+      - "频率测量"
+      - "定时控制"
+      - "数字时钟"
+    cross_chapter_prompts:
+      - "注意：同步计数器和异步计数器的区别"
+      - "建议：掌握74LS161/74LS160的功能表"
+      - "重点：置数法和复位法设计任意进制计数器"
+      - "关联：计数器设计常与状态转换图结合"
+      - "提醒：集成计数器的级联扩展"
+    sub_topics:
+      - 同步计数器
+      - 异步计数器
+      - 二进制计数器
+      - 十进制计数器
+      - 任意进制计数器
+      - 置数法
+      - 复位法
+      - 74LS161
+      - 74LS160
+
+  移位寄存器:
+    name: "移位寄存器"
+    chapter: 5
+    difficulty: 3
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "触发器"
+      - "时序逻辑"
+    combinations:
+      - "移位寄存型计数器"
+      - "序列信号发生器"
+    applications:
+      - "移位寄存"
+      - "串并转换"
+      - "序列生成"
+    cross_chapter_prompts:
+      - "注意：左移、右移、双向移位的区别"
+      - "提醒：环形计数器和扭环形计数器"
+      - "重点：移位寄存器的时序图"
+      - "关联：移位寄存器可以实现计数和序列检测"
+    sub_topics:
+      - 单向移位寄存器
+      - 双向移位寄存器
+      - 环形计数器
+      - 扭环形计数器
+      - 串并转换
+
+  存储器:
+    name: "存储器"
+    chapter: 6
+    difficulty: 3
+    importance: 3
+    exam_frequency: "低"
+    prerequisites:
+      - "触发器"
+      - "地址译码"
+    combinations:
+      - "ROM扩展"
+      - "RAM扩展"
+    applications:
+      - "数据存储"
+      - "程序存储"
+      - "查表计算"
+    cross_chapter_prompts:
+      - "注意：ROM和RAM的区别，ROM只读，RAM可读写"
+      - "提醒：字扩展和位扩展的方法"
+      - "重点：存储容量的计算和扩展方法"
+      - "关联：ROM可以实现组合逻辑函数"
+    sub_topics:
+      - ROM
+      - RAM
+      - PROM
+      - EPROM
+      - EEPROM
+      - 字扩展
+      - 位扩展
+      - 存储容量
+
+  脉冲电路:
+    name: "脉冲电路"
+    chapter: 7
+    difficulty: 3
+    importance: 3
+    exam_frequency: "低"
+    prerequisites:
+      - "触发器"
+      - "电容充放电"
+    combinations:
+      - "单稳态触发器"
+      - "多谐振荡器"
+      - "施密特触发器"
+    applications:
+      - "脉冲整形"
+      - "脉冲产生"
+      - "时钟产生"
+    cross_chapter_prompts:
+      - "注意：555定时器的典型应用要掌握"
+      - "提醒：施密特触发器的滞回特性"
+      - "重点：单稳态、双稳态、无稳态的区别"
+      - "关联：脉冲电路用于波形整形和产生"
+    sub_topics:
+      - 单稳态触发器
+      - 多谐振荡器
+      - 施密特触发器
+      - 555定时器
+      - 脉冲整形
+      - 脉冲产生
+
+  ADC_DAC:
+    name: "A/D D/A转换器"
+    chapter: 8
+    difficulty: 4
+    importance: 4
+    exam_frequency: "中"
+    prerequisites:
+      - "运算放大器"
+      - "数字电路基础"
+      - "比较器"
+    combinations:
+      - "DAC"
+      - "ADC"
+    applications:
+      - "数字信号处理"
+      - "数据采集"
+      - "控制系统"
+    cross_chapter_prompts:
+      - "注意：分辨率、转换精度、转换速度是主要参数"
+      - "提醒：逐次逼近型和双积分型ADC的特点"
+      - "重点：倒T型电阻网络DAC的计算"
+      - "关联：ADC/DAC是模拟与数字的桥梁"
+      - "公式：$U_o = -\\frac{U_{REF}}{2^n}\\sum D_i 2^i$"
+    sub_topics:
+      - DAC
+      - ADC
+      - 分辨率
+      - 转换精度
+      - 转换时间
+      - 权电阻型DAC
+      - 倒T型DAC
+      - 并行比较型ADC
+      - 逐次逼近型ADC
+      - 双积分型ADC
+
+# 考试重点总结
+exam_highlights:
+  模电:
+    - name: "负反馈类型判断"
+      frequency: "极高"
+      difficulty: "难"
+      tips: "掌握短路法和瞬时极性法"
+    - name: "静态工作点计算"
+      frequency: "极高"
+      difficulty: "中"
+      tips: "不要忘记减去$U_{BE}$"
+    - name: "差分放大电路"
+      frequency: "高"
+      difficulty: "中"
+      tips: "注意四种接法的区别"
+    - name: "运算电路"
+      frequency: "高"
+      difficulty: "中"
+      tips: "虚短虚断是关键"
+    - name: "功率放大器"
+      frequency: "中"
+      difficulty: "中"
+      tips: "效率计算和交越失真"
+
+  数电:
+    - name: "时序逻辑分析"
+      frequency: "极高"
+      difficulty: "难"
+      tips: "驱动方程→状态方程→状态图→自启动"
+    - name: "计数器设计"
+      frequency: "极高"
+      difficulty: "中"
+      tips: "置数法和复位法"
+    - name: "组合逻辑设计"
+      frequency: "高"
+      difficulty: "中"
+      tips: "抽象→真值表→化简→实现"
+    - name: "卡诺图化简"
+      frequency: "高"
+      difficulty: "中"
+      tips: "注意圈组原则和无关项"
+    - name: "触发器应用"
+      frequency: "高"
+      difficulty: "中"
+      tips: "特性方程要牢记"
+
+# 常见错误模式
+common_mistakes:
+  模电:
+    - mistake: "反馈类型判断错误"
+      correction: "使用短路输出端法判断电压/电流反馈"
+      frequency: "高"
+    - mistake: "忘记$U_{BE}$"
+      correction: "$I_B = (V_{CC} - U_{BE})/R_b$"
+      frequency: "中"
+    - mistake: "忘记负载电阻"
+      correction: "$R'_L = R_c // R_L$"
+      frequency: "高"
+    - mistake: "混淆虚短虚断条件"
+      correction: "线性区才有虚短虚断"
+      frequency: "中"
+
+  数电:
+    - mistake: "忘记检查自启动"
+      correction: "时序逻辑设计必须检查无效状态"
+      frequency: "高"
+    - mistake: "卡诺图圈组错误"
+      correction: "按$2^n$圈组，每个圈尽可能大"
+      frequency: "中"
+    - mistake: "忘记异步置数端"
+      correction: "异步置数优先级最高"
+      frequency: "中"
+    - mistake: "状态编码错误"
+      correction: "状态编码要满足$2^{n-1} < N \\leq 2^n$"
+      frequency: "低"

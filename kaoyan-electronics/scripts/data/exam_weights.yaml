@@ -1,0 +1,108 @@
+# 822考试考点权重配置
+# exam_frequency: 1-10（10为必考大题，1为几乎不考）
+# exam_importance: 1-10（10为核心考点，1为边缘考点）
+
+模拟电路:
+  基本电子器件:
+    exam_frequency: 6
+    exam_importance: 7
+    reason: "基础必考，但常结合其他考点"
+
+  基本放大器:
+    exam_frequency: 9
+    exam_importance: 10
+    reason: "必考大题，静态分析和动态分析"
+
+  差分放大器:
+    exam_frequency: 7
+    exam_importance: 8
+    reason: "常考计算题，$A_{ud}, A_{uc}, K_{CMRR}$"
+
+  功率放大器:
+    exam_frequency: 5
+    exam_importance: 6
+    reason: "考查效率计算和失真分析"
+
+  集成运放:
+    exam_frequency: 8
+    exam_importance: 9
+    reason: "运算电路必考"
+
+  反馈放大器:
+    exam_frequency: 10
+    exam_importance: 10
+    reason: "⚠️ 必考大题！反馈类型判断+深度负反馈计算"
+
+  波形产生电路:
+    exam_frequency: 4
+    exam_importance: 5
+    reason: "振荡条件判断"
+
+  稳压电源:
+    exam_frequency: 6
+    exam_importance: 7
+    reason: "整流滤波稳压计算"
+
+数字电路:
+  数制与代码:
+    exam_frequency: 3
+    exam_importance: 4
+    reason: "基础概念，小题"
+
+  逻辑运算与化简:
+    exam_frequency: 7
+    exam_importance: 8
+    reason: "卡诺图化简常考"
+
+  组合逻辑电路:
+    exam_frequency: 8
+    exam_importance: 9
+    reason: "分析设计题必考"
+
+  触发器:
+    exam_frequency: 9
+    exam_importance: 10
+    reason: "时序逻辑基础，特性方程必记"
+
+  时序逻辑电路:
+    exam_frequency: 10
+    exam_importance: 10
+    reason: "⚠️ 必考大题！驱动方程、状态方程、自启动"
+
+  计数器:
+    exam_frequency: 9
+    exam_importance: 10
+    reason: "⚠️ 必考大题！设计+分析"
+
+  移位寄存器:
+    exam_frequency: 4
+    exam_importance: 5
+    reason: "小题或结合其他考点"
+
+  存储器:
+    exam_frequency: 2
+    exam_importance: 3
+    reason: "低频考点，容量扩展"
+
+  脉冲电路:
+    exam_frequency: 3
+    exam_importance: 4
+    reason: "555定时器应用"
+
+  ADC_DAC:
+    exam_frequency: 5
+    exam_importance: 6
+    reason: "参数计算和原理分析"
+
+# 必考大题清单（高频考点）
+must_exam_questions:
+  模电:
+    - 反馈放大器
+    - 基本放大器
+    - 集成运放
+
+  数电:
+    - 时序逻辑电路
+    - 计数器
+    - 触发器
+    - 组合逻辑电路
