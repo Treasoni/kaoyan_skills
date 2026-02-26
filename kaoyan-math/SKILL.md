@@ -1,12 +1,44 @@
 ---
 name: kaoyan-math
-description: This skill should be used when the user asks to generate/modify study notes for 考研数学 (Chinese graduate entrance math exam), specifically when the user provides existing notes and wants to create exam-oriented learning notes, or when the user provides feedback to update existing study notes.
-version: 2.0.0
+description: This skill should be used when the user asks to generate/modify study notes for 考研数学 (Chinese graduate entrance math exam), specifically when the user provides existing notes and wants to create exam-oriented learning notes, or when the user provides feedback to update existing study notes. Now integrated with MemOS for persistent mistake tracking and cross-device synchronization.
+version: 3.0.0
 ---
 
 # 考研数学学习笔记生成技能 (Kaoyan Mathematics Note Generation Skill)
 
 This skill is designed for **iterative generation of exam-oriented study notes** for 考研数学 (Chinese Postgraduate Mathematics Exam). It transforms user's existing notes into structured, exam-focused learning materials and continuously updates them based on user feedback.
+
+**v3.0.0新增**:
+- **LaTeX格式强制**: 所有数学公式必须使用LaTeX格式以确保在Obsidian中正确渲染
+- **知识点主动关联**: AI主动提示跨章节关联（如洛必达法则与变限积分求导的结合）
+- **MemOS集成**: 实现真正的"千人千面"个性化笔记，记住所有错题历史，支持跨设备同步
+
+---
+
+## MemOS集成说明 (v3.0.0)
+
+### 核心原则
+- **增强功能**: MemOS集成是可选增强，不影响基础功能使用
+- **优雅降级**: 当MemOS不可用时，自动降级为v2.0.0无状态模式
+- **数据持久化**: 错误记录、用户画像、学习历史均持久化存储
+- **跨设备同步**: 支持多设备间学习进度同步
+
+### MemOS功能特性
+1. **用户画像追踪**: 记录考试类型（数一/数二/数三）、数学水平、学习偏好
+2. **错误记录持久化**: 永久保存所有错误历史（条件遗漏、方法误选、推导跳步、计算失误）
+3. **个性化提醒**: 基于历史错误生成千人千面的提示
+4. **知识点卡片追踪**: 记录每个知识点的掌握程度
+5. **画像刷新机制**: 30天未更新时提示确认学习配置
+
+### 降级行为
+当MemOS不可用时：
+- ✅ 所有v2.0.0功能正常工作
+- ✅ LaTeX格式和主动关联功能正常
+- ❌ 不保存学习历史到持久存储
+- ❌ 不进行跨设备同步
+- ❌ 不启用个性化错误模式追踪
+
+---
 
 ---
 
@@ -190,6 +222,107 @@ This skill is designed for **iterative generation of exam-oriented study notes**
 ---
 
 ## 笔记格式标准
+
+### 数学公式格式标准 ⚠️ [强制要求]
+
+所有数学公式必须使用 LaTeX 格式，以确保在 Obsidian 中正确渲染。
+
+#### 内联公式
+使用单个美元符号 `$...$`
+```markdown
+示例：设函数 $f(x)$ 在点 $x_0$ 处可导
+```
+
+#### 独立公式行
+使用双美元符号 `$$...$$`
+```markdown
+示例：
+$$
+\lim_{x \to x_0} \frac{f(x) - f(x_0)}{x - x_0} = f'(x_0)
+$$
+```
+
+#### 特殊符号 LaTeX 映射表
+
+| 数学符号 | LaTeX 代码 | 说明 |
+|---------|-----------|------|
+| $\alpha, \beta, \gamma$ | `\alpha`, `\beta`, `\gamma` | 希腊字母 |
+| $\infty$ | `\infty` | 无穷大 |
+| $\int$ | `\int` | 积分号 |
+| $\sum$ | `\sum` | 求和 |
+| $\leq, \geq$ | `\leq`, `\geq` | 不等号 |
+| $\neq$ | `\neq` | 不等于 |
+| $\approx$ | `\approx` | 约等于 |
+| $\subset$ | `\subset` | 子集 |
+| $\in$ | `\in` | 属于 |
+| $\partial$ | `\partial` | 偏导数 |
+| $\nabla$ | `\nabla` | 梯度 |
+| $\oint$ | `\oint` | 闭曲线积分 |
+| $\pm$ | `\pm` | 正负号 |
+| $\times$ | `\times` | 乘号 |
+| $\div$ | `\div` | 除号 |
+| $\sqrt{x}$ | `\sqrt{x}` | 平方根 |
+| $\sqrt[n]{x}$ | `\sqrt[n]{x}` | n次方根 |
+| $x^n$ | `x^n` | 上标 |
+| $x_n$ | `x_n` | 下标 |
+| $\frac{a}{b}$ | `\frac{a}{b}` | 分数 |
+| $\frac{\partial f}{\partial x}$ | `\frac{\partial f}{\partial x}` | 偏导数 |
+| $\int_a^b f(x)dx$ | `\int_a^b f(x)dx` | 定积分 |
+| $\iint_D f(x,y)dxdy$ | `\iint_D f(x,y)dxdy` | 二重积分 |
+| $\iiint_\Omega f(x,y,z)dxdydz$ | `\iiint_\Omega f(x,y,z)dxdydz` | 三重积分 |
+| $\oint_L Pdx + Qdy$ | `\oint_L Pdx + Qdy` | 曲线积分 |
+| $\lim_{x \to x_0}$ | `\lim_{x \to x_0}` | 极限 |
+| $\sum_{i=1}^n$ | `\sum_{i=1}^n` | 求和 |
+| $\prod_{i=1}^n$ | `\prod_{i=1}^n` | 求积 |
+| $\exists$ | `\exists` | 存在 |
+| $\forall$ | `\forall` | 对所有 |
+| $\Rightarrow$ | `\Rightarrow` | 推出 |
+| $\Leftrightarrow$ | `\Leftrightarrow` | 当且仅当 |
+| $\because$ | `\because` | 因为 |
+| $\therefore$ | `\therefore` | 所以 |
+| $\in$ | `\in` | 属于 |
+| $\notin$ | `\notin` | 不属于 |
+| $\subset$ | `\subset` | 子集 |
+| $\subseteq$ | `\subseteq` | 子集或等于 |
+| $\cup$ | `\cup` | 并集 |
+| $\cap$ | `\cap` | 交集 |
+| $\emptyset$ | `\emptyset` | 空集 |
+| $\mathbb{R}$ | `\mathbb{R}` | 实数集 |
+| $\mathbb{N}$ | `\mathbb{N}` | 自然数集 |
+| $\mathbb{Z}$ | `\mathbb{Z}` | 整数集 |
+| $\mathbb{Q}$ | `\mathbb{Q}` | 有理数集 |
+| $\mathbb{C}$ | `\mathbb{C}` | 复数集 |
+| $f'(x)$ | `f'(x)` | 一阶导数 |
+| $f''(x)$ | `f''(x)` | 二阶导数 |
+| $f^{(n)}(x)$ | `f^{(n)}(x)` | n阶导数 |
+| $\frac{dy}{dx}$ | `\frac{dy}{dx}` | 导数 |
+| $\frac{\partial z}{\partial x}$ | `\frac{\partial z}{\partial x}` | 偏导数 |
+| $A^{-1}$ | `A^{-1}` | 逆矩阵 |
+| $A^T$ | `A^T` | 转置矩阵 |
+| $|A|$ | `|A|` | 行列式 |
+| $\det(A)$ | `\det(A)` | 行列式 |
+| $\text{rank}(A)$ | `\text{rank}(A)` | 矩阵的秩 |
+| $\text{tr}(A)$ | `\text{tr}(A)` | 矩阵的迹 |
+| $\lambda$ | `\lambda` | 特征值（希腊字母） |
+| $\vec{v}$ | `\vec{v}` | 向量 |
+| $\|\vec{v}\|$ | `\|\vec{v}\|` | 向量的模 |
+| $\vec{a} \cdot \vec{b}$ | `\vec{a} \cdot \vec{b}` | 向量点积 |
+| $\vec{a} \times \vec{b}$ | `\vec{a} \times \vec{b}` | 向量叉积 |
+| $P(A)$ | `P(A)` | 事件概率 |
+| $P(A|B)$ | `P(A|B)` | 条件概率 |
+| $E(X)$ | `E(X)` | 期望 |
+| $D(X)$ | `D(X)` | 方差 |
+| $\text{Var}(X)$ | `\text{Var}(X)` | 方差 |
+| $\sigma$ | `\sigma` | 标准差 |
+| $\rho$ | `\rho` | 相关系数 |
+
+#### AI 生成约束
+生成笔记时：
+1. **自动检测**公式并转换为 LaTeX
+2. **验证**LaTeX 语法正确性
+3. **提供预览**确保渲染正确
+4. **优先使用**内联公式 `$...$` 对于行内表达式
+5. **独立公式行**使用 `$$...$$` 对于重要公式
 
 ### 知识点模板
 
@@ -437,14 +570,304 @@ tags: [高数, 极限, 重要]
 > **解答**：...
 > **评注**：...
 
-## 相关知识点
-- [[等价无穷小]]
-- [[泰勒公式]]
+## 相关知识点 📚
+
+### 前置知识
+- [[极限定义]] - 必须掌握极限的基本概念
+- [[导数定义]] - 需要理解导数的几何意义
+
+### 常考组合
+- [[等价无穷小]] - 结合使用可简化计算
+- [[泰勒公式]] - 复杂函数的替代方法
+
+### 跨章节应用 ⚠️
+**重要提醒**：
+- 当遇到**变限积分求导**时，通常会结合洛必达法则考查，建议同时复习 [[定积分应用]]
+- 在**级数收敛性判定**中可能用到洛必达法则，参考 [[数项级数]]
+
+### 易错点关联
+- 条件遗漏 → 回顾 [[定理条件⚠️]]
+- g'(x)=0陷阱 → 参见 [[导数计算]]
 
 ## 补充说明 📝
 <!-- UPDATE: 2025-XX-XX 用户反馈不理解XX -->
 [根据用户反馈动态添加的内容]
 <!-- END UPDATE -->
+```
+
+---
+
+## MemOS集成核心函数 (v3.0.0新增)
+
+### 函数1: load_user_context_from_memory
+
+从MemOS加载用户上下文，失败时返回None触发降级。
+
+```python
+def load_user_context_from_memory(user_input):
+    """从MemOS加载用户上下文
+
+    Returns:
+        dict: 用户上下文信息，包含用户画像、错题库等
+        None: MemOS不可用时触发降级
+    """
+    try:
+        results = search_memory(
+            query=f"#user_profile {user_input.get('user_id')}",
+            top_k=10
+        )
+        return parse_memory_to_math_context(results)
+    except Exception as e:
+        log_warning(f"MemOS unavailable: {e}")
+        return None
+
+
+def parse_memory_to_math_context(memory_results):
+    """将MemOS结果解析为数学学习上下文"""
+    if not memory_results:
+        return create_default_user_context()
+
+    context = {
+        "user_profile": extract_user_profile(memory_results),
+        "mistake_records": extract_mistake_records(memory_results),
+        "knowledge_cards": extract_knowledge_cards(memory_results)
+    }
+
+    return context
+```
+
+### 函数2: save_mistake_to_memory
+
+保存错误记录到MemOS，含降级处理。
+
+```python
+def save_mistake_to_memory(mistake_data, user_id):
+    """保存错误记录到MemOS
+
+    Args:
+        mistake_data: 错误记录数据
+        user_id: 用户ID
+    """
+    try:
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "mistake_record",
+                    "data": mistake_data
+                },
+                "tags": [
+                    "#mistake_record",
+                    f"#kp_{mistake_data['knowledge_point']}",
+                    f"#mistake_type_{mistake_data['type']}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+        log_info(f"Saved mistake: {mistake_data['knowledge_point']}")
+    except Exception as e:
+        log_warning(f"Failed to save mistake {mistake_data['knowledge_point']}: {e}")
+        # 降级：不影响主流程，仅不保存
+```
+
+### 函数3: generate_personalized_reminders
+
+基于用户历史错误生成个性化提醒。
+
+```python
+def generate_personalized_reminders(user_id, current_kp):
+    """生成个性化提醒
+
+    Args:
+        user_id: 用户ID
+        current_kp: 当前知识点
+
+    Returns:
+        list: 个性化提醒列表
+    """
+    try:
+        # 从MemOS读取该知识点的错误历史
+        mistake_history = search_memory(
+            query=f"#mistake_record #user_{user_id} #kp_{current_kp}",
+            top_k=50
+        )
+
+        if not mistake_history:
+            return []
+
+        # 分析错误模式
+        error_patterns = aggregate_error_patterns(mistake_history)
+
+        reminders = []
+        for pattern in error_patterns:
+            if pattern["frequency"] >= 3:  # 重复犯错
+                reminders.append(
+                    f"⚠️ 你在 {pattern['type']} 方面已出错 {pattern['frequency']} 次，"
+                    f"特别注意 {pattern['trigger']}"
+                )
+
+        return reminders
+    except Exception as e:
+        log_warning(f"Failed to generate reminders: {e}")
+        return []
+```
+
+### 函数4: check_context_freshness_math
+
+检查用户画像是否需要刷新。
+
+```python
+def check_context_freshness_math(user_context, current_date):
+    """检查数学学习画像是否需要刷新
+
+    Args:
+        user_context: 用户上下文
+        current_date: 当前日期
+
+    Returns:
+        dict: 包含needs_refresh, reason, questions等信息
+        None: 不需要刷新
+    """
+    profile = user_context.get("user_profile")
+    if not profile:
+        return None
+
+    updated_at = profile.get("updated_at")
+    days_since_update = (current_date - updated_at).days
+
+    # 超过30天自动触发刷新询问
+    if days_since_update > 30:
+        return {
+            "needs_refresh": True,
+            "reason": f"画像已{days_since_update}天未更新",
+            "questions": [
+                "你的数学水平有变化吗？(基础/中级/高级)",
+                f"考试类型需要调整吗？(当前: {profile.get('exam_type', '数一')})",
+                f"考试日期需要更新吗？(当前: {profile.get('exam_date', '未设置')})",
+                "重点模块需要调整吗？(高数/线代/概率)"
+            ]
+        }
+
+    return {"needs_refresh": False}
+```
+
+### 主流程整合
+
+```python
+def process_math_learning_v3(user_input):
+    """数学学习主流程（含MemOS集成）
+
+    Args:
+        user_input: 用户输入
+
+    Returns:
+        dict: 处理结果
+    """
+    # 1. MemOS: 读取用户上下文 (可降级)
+    user_context = safe_load_context(user_input)
+
+    # 1.5 检查画像新鲜度
+    profile_refresh = check_context_freshness_math(
+        user_context, datetime.now()
+    )
+    if profile_refresh and profile_refresh.get("needs_refresh"):
+        return generate_profile_refresh_question(profile_refresh)
+
+    # 2. 处理用户请求（生成笔记/更新笔记）
+    result = process_math_request(user_input, user_context)
+
+    # 3. MemOS: 保存结果 (可降级)
+    if result.get("mistake_records"):
+        for mistake in result["mistake_records"]:
+            save_mistake_to_memory(mistake, user_input.get("user_id"))
+
+    return result
+
+
+def safe_load_context(user_input):
+    """安全加载用户上下文（含降级）"""
+    context = load_user_context_from_memory(user_input)
+    if context is None:
+        log_info("MemOS unavailable, using default context")
+        return create_default_user_context()
+    return context
+```
+
+---
+
+## 知识点联动主动性增强 (v3.0.0新增)
+
+### 知识点关系图数据结构
+
+```python
+# 知识点关系图
+KNOWLEDGE_GRAPH = {
+    "洛必达法则": {
+        "prerequisites": ["极限定义", "导数定义"],
+        "combinations": ["等价无穷小", "泰勒公式"],
+        "applications": ["定积分应用", "变限积分求导"],
+        "cross_chapter_prompts": [
+            "注意：当遇到变限积分求导时，通常会结合洛必达法则考查",
+            "建议：同时复习 [[定积分应用]] 中的变限积分部分",
+            "关联：洛必达法则常与泰勒公式结合考查极限问题"
+        ]
+    },
+    "泰勒公式": {
+        "prerequisites": ["导数定义", "高阶导数"],
+        "combinations": ["洛必达法则", "等价无穷小"],
+        "applications": ["级数展开", "近似计算"],
+        "cross_chapter_prompts": [
+            "注意：泰勒公式在处理复杂函数极限时比洛必达法则更简洁",
+            "建议：掌握常见函数的泰勒展开式（sin x, cos x, e^x, ln(1+x)）",
+            "关联：泰勒公式是级数展开的基础，参考 [[幂级数]]"
+        ]
+    },
+    "变限积分求导": {
+        "prerequisites": ["定积分定义", "导数定义"],
+        "combinations": ["洛必达法则", "复合函数求导"],
+        "applications": ["积分方程", "微分方程"],
+        "cross_chapter_prompts": [
+            "注意：变限积分求导常与洛必达法则结合考查极限",
+            "建议：熟练掌握牛顿-莱布尼茨公式和链式法则",
+            "关联：遇到积分方程时，常需先求导转化为微分方程"
+        ]
+    }
+}
+```
+
+### 主动关联算法
+
+```python
+def generate_proactive_links(knowledge_point, user_mistakes=None):
+    """生成主动关联提示
+
+    Args:
+        knowledge_point: 当前知识点
+        user_mistakes: 用户历史错误（可选）
+
+    Returns:
+        dict: 关联提示结构
+    """
+    graph = KNOWLEDGE_GRAPH.get(knowledge_point, {})
+
+    links = {
+        "prerequisites": graph.get("prerequisites", []),
+        "combinations": graph.get("combinations", []),
+        "cross_chapter_prompts": graph.get("cross_chapter_prompts", []),
+        "personalized": []
+    }
+
+    # 个性化提示（基于用户历史错误）
+    if user_mistakes:
+        for mistake in user_mistakes:
+            if mistake["type"] == "条件遗漏":
+                links["personalized"].append(
+                    f"💡 你经常遗漏{mistake['condition']}条件，"
+                    f"复习时重点看 [[{knowledge_point}]] 的定理条件部分"
+                )
+
+    return links
 ```
 
 ---
@@ -568,6 +991,89 @@ tags: [高数, 极限, 重要]
     ├── 点估计 (矩估计、最大似然估计)
     └── 区间估计
 ```
+
+---
+
+## MemOS数据模型 (v3.0.0新增)
+
+### 用户画像 (User Profile)
+
+```yaml
+user_profile:
+  user_id: string
+  conversation_id: string
+  created_at: datetime
+  updated_at: datetime
+
+  profile:
+    exam_date: date
+    exam_type: enum (math_1 | math_2 | math_3)
+    current_level: enum (basic | intermediate | advanced)
+
+  mistake_base:
+    total_mistakes: int
+    condition_mistakes: int
+    method_mistakes: int
+    calculation_mistakes: int
+
+  preferences:
+    focus_modules: array  # [高数, 线代, 概率]
+    learning_style: enum (theory_first | practice_first | balanced)
+
+  refresh_config:
+    last_refreshed: date
+    auto_refresh_interval: int
+```
+
+### 错误记录 (Mistake Record)
+
+```yaml
+mistake_record:
+  record_id: string
+  user_id: string
+  knowledge_point: string
+  date: date
+  created_at: datetime
+
+  mistake_info:
+    mistake_type: enum (condition_omission | method_error | calculation_error | logic_jump)
+    original_understanding: string
+    correction: string
+    trigger: string
+
+  context:
+    question_type: string
+    related_theorems: array
+```
+
+### 知识点卡片 (Knowledge Card)
+
+```yaml
+knowledge_card:
+  card_id: string
+  user_id: string
+  knowledge_point: string
+  module: enum (高数 | 线代 | 概率)
+  mastery_level: enum (unfamiliar | learning | familiar | mastered)
+  mistake_count: int
+
+  review_data:
+    last_reviewed: date
+    next_review: date
+    review_count: int
+```
+
+---
+
+## MemOS标签系统 (v3.0.0新增)
+
+| 标签 | 用途 | 唯一性 |
+|------|------|--------|
+| `#user_profile` | 用户画像 | 每用户1条 |
+| `#mistake_record` | 错误历史 | 多条 |
+| `#knowledge_card` | 知识点卡片 | 每知识点每用户1条 |
+| `#kp_{knowledge_point}` | 知识点索引 | 多条 |
+| `#mistake_type_{type}` | 错误类型索引 | 多条 |
 
 ---
 
@@ -782,6 +1288,7 @@ g'(x)=0意味着函数g(x)在该点的变化率为0，即g(x)在该点附近是"
 
 ## 验证标准
 
+### 基础功能验证 (v2.0.0)
 1. 能正确解析用户现成笔记
 2. 能识别知识点结构并按知识点分文件
 3. 生成的笔记包含 Obsidian 格式（properties、tags、callouts、wikilinks）
@@ -795,6 +1302,28 @@ g'(x)=0意味着函数g(x)在该点的变化率为0，即g(x)在该点附近是"
 11. 生成的笔记包含"我的错误类型 📌"部分，标注个性化错误模式
 12. AI能根据用户反馈正确更新思维过程记录字段
 13. 用户可以基于这些记录进行自我反思和改进
+
+### LaTeX格式验证 (v3.0.0新增)
+14. 所有数学公式使用LaTeX格式（`$...$`或`$$...$$`）
+15. 内联公式使用单个美元符号，独立公式行使用双美元符号
+16. 特殊符号正确转换为LaTeX代码（如`\alpha`, `\infty`, `\int`）
+17. 验证LaTeX语法正确性，确保在Obsidian中正确渲染
+18. 提供公式预览确认渲染效果
+
+### 主动关联验证 (v3.0.0新增)
+19. 生成笔记时包含"前置知识"、"常考组合"、"跨章节应用"部分
+20. 提供跨章节关联提醒（如洛必达法则与变限积分求导）
+21. 关联提醒包含具体知识点链接和复习建议
+22. 关联内容基于知识图谱数据结构
+
+### MemOS集成验证 (v3.0.0新增)
+23. 记录错误时能正确保存到MemOS（带标签）
+24. 基于历史错误生成个性化提醒
+25. 用户画像能正确保存和更新
+26. 知识点卡片能追踪掌握程度
+27. 超过30天未更新时提示刷新画像
+28. MemOS不可用时优雅降级为v2.0.0模式
+29. 向后兼容：v2.0.0笔记无需修改即可使用
 
 ---
 
