@@ -1,7 +1,7 @@
 ---
 name: kaoyan-english
-description: This skill should be used when the user asks to organize English vocabulary for 考研英语 (Chinese graduate entrance English exam), generate review plans from PDF exports, create spaced repetition schedules, take vocabulary quizzes, handle polysemy (rare word meanings), look up word information, or practice writing output in the context of 考研英语 exam preparation.
-version: 2.0.0
+description: This skill should be used when the user asks to organize English vocabulary for 考研英语 (Chinese graduate entrance English exam), generate review plans from PDF exports, create spaced repetition schedules, take vocabulary quizzes, handle polysemy (rare word meanings), look up word information, or practice writing output in the context of 考研英语 exam preparation. Now integrated with MemOS for persistent vocabulary tracking and cross-device synchronization.
+version: 3.1.0
 ---
 
 # 考研英语复习技能 (Kaoyan English Review Skill)
@@ -9,6 +9,32 @@ version: 2.0.0
 ## 技能概述
 
 本技能专注于考研英语词汇复习，帮助用户从单词APP（墨墨/百词斩等）导出的PDF中提取词汇，生成基于真题语境的复习材料，提供熟词僻义预警、考研适配的间隔重复复习计划、快速查词、测试功能和写作输出训练。
+
+**v3.1.0新增**: 集成MemOS记忆系统，实现词汇学习状态的持久化存储、跨设备同步和智能追踪。当MemOS不可用时，技能自动降级为v2.0.0无状态模式。
+
+## MemOS集成说明 (v3.1.0)
+
+### 核心原则
+- **增强功能**: MemOS集成是可选增强，不影响基础功能使用
+- **优雅降级**: 当MemOS不可用时，自动降级为无状态模式
+- **数据持久化**: 词汇学习记录、用户画像、复习历史均持久化存储
+- **跨设备同步**: 支持多设备间词汇学习进度同步
+
+### MemOS功能特性
+1. **用户画像追踪**: 记录英语水平、考试信息、学习偏好
+2. **词汇卡片持久化**: SM-2算法状态永久保存
+3. **复习历史记录**: 完整的复习会话历史
+4. **测试结果追踪**: 测试成绩和错误分析
+5. **词汇疲劳追踪**: 防止学习倦怠的智能提醒
+6. **欠账熔断机制**: 超过200个待复习词时自动触发复习模式
+7. **画像刷新机制**: 30天未更新时提示确认学习配置
+
+### 降级行为
+当MemOS不可用时：
+- ✅ 所有v2.0.0功能正常工作
+- ❌ 不保存学习历史到持久存储
+- ❌ 不进行跨设备同步
+- ❌ 不启用智能追踪（疲劳、欠账熔断等）
 
 ---
 
@@ -154,9 +180,9 @@ version: 2.0.0
 
 ## 数据结构
 
-### 单词卡片格式（完整版 v2.0）
+### 单词卡片格式（完整版 v3.1.0）
 
-```markdown
+```yaml
 ---
 # 基础信息
 word: "address"
@@ -166,7 +192,15 @@ difficulty: "important"
 frequency: 5
 first_seen: "2025-01-15"
 
-# 僻义预警（新增）
+# MemOS元数据 (v3.1新增)
+word_id: "addr_20250115_001"
+user_id: "user_12345"
+created_at: "2025-01-15T10:30:00Z"
+updated_at: "2025-02-20T15:45:00Z"
+memos_word_id: "memos_addr_001"
+memos_last_sync: "2025-02-20T15:45:00Z"
+
+# 僻义预警
 polysemy_alert: true
 warning_level: "critical"
 exam_frequency: "80%"
@@ -178,7 +212,7 @@ common_meanings:
   - meaning: "地址；称呼"
     part_of_speech: "n./vt."
 
-# 真题语境（新增）
+# 真题语境
 real_exam_contexts:
   - year: 2022
     paper: "英语一"
@@ -192,7 +226,7 @@ real_exam_contexts:
     sentence: "We must **address** the root causes of inequality."
     sentence_translation: "我们必须解决不平等的根本原因。"
 
-# SM-2 + 考研适配（修改）
+# SM-2 + 考研适配
 ease_factor: 2.5
 interval: 7
 review_count: 3
@@ -209,7 +243,7 @@ correct_count: 2
 incorrect_count: 1
 forgetting_rate: 0.33
 
-# 写作应用（新增）
+# 写作应用
 writing_usages:
   - pattern: "address the problem/issue"
     formality: "high"
@@ -734,6 +768,476 @@ def generate_context_article(word_list, user_preferences):
 
     return article
 ```
+
+---
+
+## MemOS集成核心函数 (v3.1.0新增)
+
+### 函数1: load_user_context_from_memory
+
+从MemOS加载用户上下文，失败时返回None触发降级。
+
+```python
+def load_user_context_from_memory(user_input):
+    """从MemOS加载用户上下文
+
+    Returns:
+        dict: 用户上下文信息，包含用户画像、词汇库等
+        None: MemOS不可用时触发降级
+    """
+    try:
+        results = search_memory(
+            query=f"#user_profile {user_input.get('user_id')}",
+            top_k=10
+        )
+        return parse_memory_to_english_context(results)
+    except Exception as e:
+        log_warning(f"MemOS unavailable: {e}")
+        return None
+
+
+def parse_memory_to_english_context(memory_results):
+    """将MemOS结果解析为英语学习上下文"""
+    if not memory_results:
+        return create_default_user_context()
+
+    context = {
+        "user_profile": extract_user_profile(memory_results),
+        "vocabulary_cards": extract_word_cards(memory_results),
+        "review_history": extract_review_records(memory_results),
+        "mental_history": extract_mental_state(memory_results)
+    }
+
+    return context
+```
+
+### 函数2: save_word_card_to_memory
+
+保存词汇卡片到MemOS，含降级处理。
+
+```python
+def save_word_card_to_memory(word_card, user_id):
+    """保存词汇卡片到MemOS
+
+    Args:
+        word_card: 词汇卡片对象
+        user_id: 用户ID
+    """
+    try:
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "word_card",
+                    "data": word_card.to_dict()
+                },
+                "tags": [
+                    "#word_card",
+                    f"#word_{word_card.word}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+        log_info(f"Saved word card: {word_card.word}")
+    except Exception as e:
+        log_warning(f"Failed to save word card {word_card.word}: {e}")
+        # 降级：不影响主流程，仅不保存
+```
+
+### 函数3: record_review_session
+
+记录复习会话到MemOS，使用upsert逻辑避免冗余。
+
+```python
+def record_review_session(user_id, session_data):
+    """记录复习会话到MemOS（upsert逻辑）
+
+    Args:
+        user_id: 用户ID
+        session_data: 复习会话数据
+    """
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        # 先查找今日已有记录
+        today_session = search_memory(
+            query=f"#review_session_current #user_{user_id} #date_{today}",
+            top_k=1
+        )
+
+        if today_session:
+            # 标记旧版本为历史
+            add_message(
+                messages=[{
+                    "role": "assistant",
+                    "content": {
+                        "type": "review_session",
+                        "version": today_session[0].get("version"),
+                        "status": "superseded",
+                        "data": today_session[0].get("data")
+                    },
+                    "tags": [
+                        "#review_session_history",
+                        f"#date_{today}",
+                        f"#user_{user_id}"
+                    ]
+                }],
+                user_id=user_id
+            )
+
+        # 保存新会话为当前版本
+        add_message(
+            messages=[{
+                "role": "assistant",
+                "content": {
+                    "type": "review_session",
+                    "version": f"v{datetime.now().strftime('%H%M')}",
+                    "status": "current",
+                    "data": session_data
+                },
+                "tags": [
+                    "#review_session_current",
+                    f"#date_{today}",
+                    f"#user_{user_id}"
+                ]
+            }],
+            user_id=user_id
+        )
+
+        log_info(f"Recorded review session for {today}")
+    except Exception as e:
+        log_warning(f"Failed to record session: {e}")
+```
+
+### 函数4: calculate_next_review_with_memory
+
+计算下次复习时间，从MemOS读取历史数据。
+
+```python
+def calculate_next_review_with_memory(word, quality, user_context):
+    """计算下次复习时间（从MemOS读取历史数据）
+
+    Args:
+        word: 目标单词
+        quality: 复习质量评分 (0-5)
+        user_context: 用户上下文
+
+    Returns:
+        dict: 包含interval, next_review, updated_card等信息
+    """
+    try:
+        # 从MemOS读取该词的历史记录
+        word_history = search_memory(
+            query=f"#word_card_{word} #user_{user_context.get('user_id')}",
+            top_k=1
+        )
+
+        if word_history:
+            card = word_history[0]
+            # 使用历史数据计算新的复习间隔
+            return calculate_sm2_next_review(card, quality, user_context)
+        else:
+            # 新词，使用初始参数
+            return initialize_new_word_card(word, quality, user_context)
+    except Exception as e:
+        log_warning(f"Failed to load word history for {word}: {e}")
+        return {"interval": 1, "next_review": tomorrow()}
+```
+
+### 函数5: check_context_freshness_english (v3.1鲁棒性增强)
+
+检查用户画像是否需要刷新。
+
+```python
+def check_context_freshness_english(user_context, current_date):
+    """检查英语学习画像是否需要刷新
+
+    Args:
+        user_context: 用户上下文
+        current_date: 当前日期
+
+    Returns:
+        dict: 包含needs_refresh, reason, questions等信息
+        None: 不需要刷新
+    """
+    profile = user_context.get("user_profile")
+    if not profile:
+        return None
+
+    updated_at = profile.get("updated_at")
+    days_since_update = (current_date - updated_at).days
+
+    # 超过30天自动触发刷新询问
+    if days_since_update > 30:
+        return {
+            "needs_refresh": True,
+            "reason": f"画像已{days_since_update}天未更新",
+            "questions": [
+                "你的英语水平有变化吗？(基础/中级/高级)",
+                f"每日新词目标需要调整吗？(当前: {profile.get('daily_new_word_target', 50)})",
+                "复习重点需要调整吗？(均衡/僻义优先/写作优先)",
+                f"僻义敏感度需要调整吗？(当前: {profile.get('polysemy_sensitivity', 'medium')})"
+            ]
+        }
+
+    return {"needs_refresh": False}
+```
+
+### 函数6: check_vocabulary_debt_with_memory (v3.1鲁棒性增强)
+
+检查词汇欠账，含熔断机制。
+
+```python
+def check_vocabulary_debt_with_memory(user_context):
+    """检查词汇欠账（含熔断机制）
+
+    Args:
+        user_context: 用户上下文
+
+    Returns:
+        dict: 欠账状态和处理策略
+    """
+    # 计算逾期未复习的词汇数量
+    overdue_words = calculate_overdue_words(user_context)
+    DEBT_LIMIT = 200  # 200个词熔断阈值
+
+    if overdue_words > DEBT_LIMIT:
+        return {
+            "type": "vocabulary_emergency",
+            "overdue_count": overdue_words,
+            "strategy": "recovery_only",
+            "message": f"⚠️ 待复习词汇已达{overdue_words}个，超过安全阈值",
+            "suggestion": "暂停新词学习，专注复习",
+            "recovery_plan": generate_vocabulary_recovery_plan(overdue_words)
+        }
+
+    return {"type": "normal", "overdue_count": overdue_words}
+
+
+def calculate_overdue_words(user_context):
+    """计算逾期未复习的词汇数量"""
+    vocabulary_cards = user_context.get("vocabulary_cards", [])
+    today = date.today()
+
+    overdue_count = 0
+    for card in vocabulary_cards:
+        next_review = card.get("next_review")
+        if next_review and next_review < today:
+            overdue_count += 1
+
+    return overdue_count
+```
+
+### 函数7: check_vocabulary_fatigue_intervention (v3.1鲁棒性增强)
+
+检查词汇学习疲劳，提供干预建议。
+
+```python
+def check_vocabulary_fatigue_intervention(user_context):
+    """检查是否需要词汇疲劳干预
+
+    Args:
+        user_context: 用户上下文
+
+    Returns:
+        dict: 干预方案
+        None: 无需干预
+    """
+    mental_history = user_context.get("mental_history", [])
+
+    if len(mental_history) < 3:
+        return None
+
+    recent_days = mental_history[-3:]
+    tired_count = sum(
+        1 for d in recent_days
+        if d.get("vocabulary_fatigue", 0) > 0.6
+    )
+
+    if tired_count >= 3:
+        avg_fatigue = sum(
+            d.get("vocabulary_fatigue", 0.5) for d in recent_days
+        ) / len(recent_days)
+
+        return {
+            "intervention_needed": True,
+            "mode": "vocabulary_relief",
+            "avg_fatigue": avg_fatigue,
+            "actions": [
+                "减少新词量50%",
+                "增加真题语境阅读",
+                "暂停僻义词训练",
+                "增加写作应用练习"
+            ]
+        }
+
+    return None
+```
+
+### 主流程整合
+
+```python
+def process_vocabulary_learning_v3(user_input, mode="minimal"):
+    """词汇学习主流程（含MemOS集成）
+
+    Args:
+        user_input: 用户输入
+        mode: 处理模式
+
+    Returns:
+        dict: 处理结果
+    """
+    # 1. MemOS: 读取用户上下文 (可降级)
+    user_context = safe_load_context(user_input)
+
+    # 1.5 v3.1: 检查画像新鲜度
+    profile_refresh = check_context_freshness_english(
+        user_context, datetime.now()
+    )
+    if profile_refresh and profile_refresh.get("needs_refresh"):
+        return generate_profile_refresh_question(profile_refresh)
+
+    # 1.6 v3.1: 检查词汇欠账
+    debt_check = check_vocabulary_debt_with_memory(user_context)
+    if debt_check.get("type") == "vocabulary_emergency":
+        return generate_vocabulary_emergency_plan(debt_check)
+
+    # 1.7 v3.1: 检查词汇疲劳
+    fatigue_check = check_vocabulary_fatigue_intervention(user_context)
+    if fatigue_check and fatigue_check.get("intervention_needed"):
+        user_input["relief_mode"] = fatigue_check.get("mode")
+
+    # 2. 处理用户请求（提取单词/查词/生成复习计划）
+    result = process_vocabulary_request(user_input, user_context)
+
+    # 3. MemOS: 保存结果 (可降级)
+    safe_save_vocabulary_result(result, user_input)
+
+    return result
+
+
+def safe_load_context(user_input):
+    """安全加载用户上下文（含降级）"""
+    context = load_user_context_from_memory(user_input)
+    if context is None:
+        log_info("MemOS unavailable, using default context")
+        return create_default_user_context()
+    return context
+
+
+def safe_save_vocabulary_result(result, user_input):
+    """安全保存结果（含降级）"""
+    if result.get("word_cards"):
+        for card in result["word_cards"]:
+            save_word_card_to_memory(card, user_input.get("user_id"))
+
+    if result.get("review_session"):
+        record_review_session(user_input.get("user_id"), result["review_session"])
+```
+
+---
+
+## MemOS数据模型 (v3.1.0新增)
+
+### 用户画像 (User Profile)
+
+```yaml
+user_profile:
+  user_id: string
+  conversation_id: string
+  created_at: datetime
+  updated_at: datetime
+
+  profile:
+    exam_date: date
+    exam_type: enum (english_1 | english_2)
+    target_score: int
+    current_level: enum (basic | intermediate | advanced)
+
+  vocabulary_base:
+    total_words: int
+    mastered_count: int
+    reviewing_count: int
+    new_count: int
+
+  preferences:
+    daily_new_word_target: int (default 50)
+    review_focus: enum (balanced | polysemy_priority | writing_priority)
+    learning_style: enum (context_first | rote_first)
+    polysemy_sensitivity: enum (high | medium | low)
+
+  mental_history:
+    - date: date
+      status: enum (energized | normal | tired | burned_out)
+      vocabulary_fatigue: float (0.0-1.0)
+      trigger: string
+
+  refresh_config:
+    last_refreshed: date
+    auto_refresh_interval: int
+    pending_refresh: boolean
+```
+
+### 复习记录 (Review Record)
+
+```yaml
+review_record:
+  record_id: string
+  user_id: string
+  date: date
+  created_at: datetime
+
+  session_info:
+    words_reviewed: int
+    new_words: int
+    duration_minutes: int
+
+  results:
+    correct_count: int
+    incorrect_count: int
+    polysemy_errors: int
+
+  phase_context:
+    current_phase: string
+    days_to_exam: int
+```
+
+### 测试记录 (Test Record)
+
+```yaml
+test_record:
+  test_id: string
+  user_id: string
+  test_type: enum (meaning_quiz | collocation_quiz | writing_output)
+  date: date
+  created_at: datetime
+
+  test_data:
+    word_count: int
+    questions: array
+
+  results:
+    score: float
+    polysemy_errors: array
+    weak_words: array
+
+  memos_test_id: string
+```
+
+---
+
+## MemOS标签系统 (v3.1.0新增)
+
+| 标签 | 用途 | 唯一性 |
+|------|------|--------|
+| `#user_profile` | 用户画像 | 每用户1条 |
+| `#word_card` | 词汇卡片 | 每词每用户1条 |
+| `#word_{word}` | 单词索引 | 可多条（不同用户） |
+| `#review_session_current` | 今日当前复习会话 | 每用户每日1条 |
+| `#review_session_history` | 历史复习会话归档 | 多条 |
+| `#date_{YYYY-MM-DD}` | 日期索引 | 多条 |
+| `#test_result` | 测试记录 | 多条 |
 
 ---
 
