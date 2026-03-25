@@ -18,7 +18,7 @@
 |------|------|------|
 | [kaoyan-math](./kaoyan-math/) | 考研数学路由器，调度到子技能（笔记生成、知识点结构、核心协调） | v4.0.0 |
 | [kaoyan-english](./kaoyan-english/) | 考研英语路由器，调度到子技能（词汇、复习、测试、写作） | v4.0.0 |
-| [kaoyan-plan](./kaoyan-plan/) | 考研学习计划生成，支持课表解析、任务分配、欠账管理、MemOS集成 | v3.10.0 |
+| [kaoyan-plan](./kaoyan-plan/) | 考研学习计划生成，支持课表解析、任务分配、欠账管理、MemOS集成 | v3.13.0 |
 | [kaoyan-electronics](./kaoyan-electronics/) | 822电子技术基础路由器，调度到子技能（电路分析、SOP、知识点结构） | v2.0.0 |
 
 ### 考研数学子技能
@@ -92,23 +92,23 @@
 考研主技能采用路由器架构，按需调度子技能：
 
 ```
-kaoyan-math (路由器)
-    ├─→ kaoyan-math-core      (核心协调)
-    ├─→ kaoyan-math-notes     (笔记生成)
-    └─→ kaoyan-math-structure (知识结构)
+kaoyan-math (路由器) v4.0.0
+    ├─→ kaoyan-math-core      (核心协调：MemOS、调度信号、错误模型)
+    ├─→ kaoyan-math-notes     (笔记生成更新：LaTeX、知识点模板)
+    └─→ kaoyan-math-structure (知识点结构：高数/线代/概率模块)
 
-kaoyan-english (路由器)
-    ├─→ kaoyan-english-core    (核心协调)
-    ├─→ kaoyan-english-vocab   (词汇管理)
-    ├─→ kaoyan-english-review  (复习计划)
-    ├─→ kaoyan-english-quiz    (单词测试)
-    └─→ kaoyan-english-writing (写作训练)
+kaoyan-english (路由器) v4.0.0
+    ├─→ kaoyan-english-core    (核心协调：MemOS、调度信号、记忆压缩)
+    ├─→ kaoyan-english-vocab   (词汇管理：PDF提取、查词、熟词僻义)
+    ├─→ kaoyan-english-review  (复习计划：SM-2算法、统计追踪)
+    ├─→ kaoyan-english-quiz    (单词测试：词义、搭配、僻义测试)
+    └─→ kaoyan-english-writing (写作训练：替换、汉译英、词义辨析)
 
-kaoyan-electronics (路由器)
-    ├─→ kaoyan-electronics-core     (核心协调)
-    ├─→ kaoyan-electronics-sop      (SOP模板)
-    ├─→ kaoyan-electronics-circuit  (电路分析)
-    └─→ kaoyan-electronics-structure (知识结构)
+kaoyan-electronics (路由器) v2.0.0
+    ├─→ kaoyan-electronics-core     (核心协调：MemOS、跨学科关联、考点权重)
+    ├─→ kaoyan-electronics-sop      (SOP模板：17个标准化解题流程)
+    ├─→ kaoyan-electronics-circuit  (电路图解析：静态+动态分析)
+    └─→ kaoyan-electronics-structure (知识点结构：知识图谱、前置知识)
 ```
 
 ## 安装使用
@@ -214,12 +214,15 @@ skill/
 
 ## 版本历史
 
-- **2026-03**: 路由器架构重构，主技能拆分为子技能
-- **2026-03**: 新增 excalidraw-diagram、math-graph、mistake-book 等通用工具技能
-- **2026-03**: kaoyan-plan 升级到 v3.10.0，完善 MemOS 集成
-- **2026-02**: 初始版本，包含8个核心技能
+- **2026-03-25**: 路由器架构完成
+  - kaoyan-math v4.0.0: 拆分为3个子技能（core/notes/structure）
+  - kaoyan-english v4.0.0: 拆分为5个子技能（core/vocab/review/quiz/writing）
+  - kaoyan-electronics v2.0.0: 拆分为4个子技能（core/sop/circuit/structure）
+  - kaoyan-plan v3.13.0: 修复完成记录和学习日志问题
+- **2026-03**: 新增 excalidraw-diagram v1.2.1、math-graph、mistake-book 等通用工具技能
 - **2026-02**: 添加 MemOS 集成支持
 - **2026-02**: 添加跨学科关联功能
+- **2026-02**: 初始版本，包含8个核心技能
 
 ## 许可证
 

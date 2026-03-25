@@ -288,7 +288,7 @@ day_number = get_validated_day_number("2026-03-16")  # 返回：17
 
 # 生成文件名
 filenames = generate_day_filenames("2026-03-16", day_number)
-writing_filename = filenames["writing"]  # "Day-017-2026-03-16.md"
+writing_filename = filenames["writing"]  # "Writing-Day-017-2026-03-16.md"
 ```
 
 ### 核心函数位置
@@ -308,5 +308,5 @@ writing_filename = filenames["writing"]  # "Day-017-2026-03-16.md"
 ---
 
 *创建日期: 2026-03-10*
-*版本: 1.0.0*
-*最后更新: 2026-03-16（添加Day编号计算规则）*
+*版本: 1.1.0*
+*最后更新: 2026-03-24（统一文件命名规范：Writing-Day）*

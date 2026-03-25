@@ -1,7 +1,7 @@
 ---
 name: kaoyan-plan
 description: This skill should be used when the user asks to generate study plans for 考研 (Chinese graduate entrance exam), parse course schedules, create daily/weekly study schedules, or optimize study time allocation. Supports three input modes (minimal/standard/advanced), adapts to individual chronotypes (morning person/night owl), handles task debt from missed plans with circuit breaker protection (>10h triggers recovery mode), enforces Sunday review, respects minimum block duration requirements for different subjects, implements science-based time block splitting based on cognitive science (attention decay, decision fatigue, spacing effect), integrates with MemOS for persistent learning progress tracking, includes context refresh mechanism (auto-prompts profile update after 30 days), mental health intervention (triggers after 3 consecutive tired days), vocabulary review validation (prevents missing newly learned vocabulary), plan upsert logic with tagging for version control, completion record generation based on user actual reports (supports extra tasks).
-version: 3.10.0
+version: 3.13.0
 ---
 
 # 考研规划Skill (Kaoyan Plan Generation Skill)
@@ -178,6 +178,15 @@ version: 3.10.0
 ---
 
 ## 版本历史
+
+### v3.13.0 (2026-03-24)
+**修复完成记录和学习日志问题**：
+- **完成记录文件路径**：将完成记录文件路径从 `考研计划/每日计划/{date}-完成记录.md` 改为 `考研计划/每日计划/完成记录/{date}-完成记录.md`
+- **英语学习日志格式**：修复 `append_english_learning_log()` 函数，使其生成的日志格式与现有文件格式一致
+  - 自动计算学习天数
+  - 生成完整的日志条目（包括学习时长、进度更新等）
+  - 更新 frontmatter 中的 last_updated 字段
+- 解决问题：完成记录文件现在会自动放到正确的文件夹，学习日志格式也正确了
 
 ### v3.11.0 (2026-03-19)
 **全面修复英语学习进度更新问题**（核心Bug修复）：
