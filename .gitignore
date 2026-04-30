@@ -1,0 +1,25 @@
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+
+# 本地环境配置
+.env
+.env.*
+*.env
+*.local.json
+
+# Obsidian 工作区状态
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Claude Code 本地设置
+.claude/settings.json
+.claude/settings.local.json
+
+# 临时文件
+*.tmp
+*.bak
+*.backup
+*.swp
+node_modules/
