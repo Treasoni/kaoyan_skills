@@ -6,12 +6,12 @@
 
 ## 项目概述
 
-本项目包含 40+ 个可复用的 Agent Skills，每个技能都是一个独立的功能模块，可以通过 Claude Code 的 Skill 工具调用。这些技能主要用于：
+本项目包含 50+ 个可复用的 Agent Skills，每个技能都是一个独立的功能模块，可以通过 Claude Code 的 Skill 工具调用。这些技能主要用于：
 
 - **考研备考**：数学、英语、电子技术等学科的学习辅助
 - **计划管理**：学习计划生成、进度追踪、欠账管理
 - **知识管理**：笔记生成、错题整理、知识库组织、理解验证
-- **工具增强**：Obsidian 集成、图表生成、智能搜索、安全审计
+- **工具增强**：Obsidian 集成、图表生成、文档处理、智能搜索、安全审计、MCP 构建
 
 ## 三层架构
 
@@ -20,13 +20,14 @@
   │
   ▼
 L1 入口路由        ← 日常只暴露这些入口
-  ├─ /kaoyan-plan      学习计划、进度、欠账
-  ├─ /kaoyan-math      考研数学（路由器）
-  ├─ /kaoyan-english   考研英语（路由器）
+  ├─ /sync            同步学习进度到 MemOS
+  ├─ /kaoyan-plan     学习计划、进度、欠账
+  ├─ /kaoyan-math     考研数学（路由器）
+  ├─ /kaoyan-english  考研英语（路由器）
   ├─ /kaoyan-electronics  822 电子技术（路由器）
-  ├─ /understanding    理解验证、推导检查
-  ├─ /mistake-book     错题整理
-  ├─ /digest           学习消化、经验记录
+  ├─ /understanding   理解验证、推导检查
+  ├─ /mistake-book    错题整理
+  ├─ /digest          学习消化、经验记录
   │
   ▼
 L2 领域模块         ← 按需调度，不直接暴露给用户
@@ -38,10 +39,12 @@ L2 领域模块         ← 按需调度，不直接暴露给用户
   ▼
 L3 工具能力         ← 通用工具，跨领域复用
   ├─ 图示: excalidraw-diagram / math-graph / knowledge-mindmap
-  ├─ Obsidian: cli / markdown / bases / sortspec-generator
-  ├─ 搜索: smart-search / kaoyan-info
+  ├─ Obsidian: cli / markdown / bases / json-canvas / sortspec-generator
+  ├─ 文件: pdf / docx / word-template-generator
+  ├─ 搜索: smart-search / defuddle / kaoyan-info
+  ├─ OpenCLI: opencli-usage / opencli-browser / opencli-adapter-author / opencli-autofix
+  ├─ MCP: mcp-builder
   ├─ 维护: skill-refactor / maintain-learnings / prompt-cache-optimizer / security-secret-audit / fix-table-pipe
-  ├─ 文件: word-template-generator
   ├─ 词汇: parse-words
   └─ 章节: chapter-summary
 ```
@@ -56,6 +59,7 @@ L3 工具能力         ← 通用工具，跨领域复用
 | [kaoyan-english](./kaoyan-english/) | 考研英语路由器，调度到子技能（词汇、复习、测试、写作） | v4.0.0 |
 | [kaoyan-plan](./kaoyan-plan/) | 考研学习计划生成，支持课表解析、任务分配、欠账管理、MemOS集成 | v3.16.0 |
 | [kaoyan-electronics](./kaoyan-electronics/) | 822电子技术基础路由器，调度到子技能（电路分析、SOP、知识点结构） | v2.0.0 |
+| [sync](./sync/) | 同步学习进度到 MemOS：`/sync 拉取` 读取跨设备上下文，`/sync 上传` 保存学习状态 | - |
 | [understanding](./understanding/) | 理解验证：检查概念/推导/笔记是否正确，输出结构化 `[!personal]` 记录 | v1.0.0 |
 | [mistake-book](./mistake-book/) | 错题整理：快速整理错题到学科错题本，自动格式化、更新索引 | v1.0.0 |
 | [digest](./digest/) | 学习消化：回顾学习会话，记录心得和错误到 .learnings/，自动压缩去重 | - |
@@ -114,14 +118,39 @@ L3 工具能力         ← 通用工具，跨领域复用
 | [obsidian-cli](./obsidian-cli/) | Obsidian CLI 交互：读/写/搜索/管理笔记与属性，支持插件开发和调试 |
 | [obsidian-markdown](./obsidian-markdown/) | Obsidian 风味 Markdown：wikilinks、embeds、callouts、properties 等语法 |
 | [obsidian-bases](./obsidian-bases/) | Obsidian Bases 文件管理：创建/编辑 .base 文件、视图、筛选器、公式 |
+| [json-canvas](./json-canvas/) | JSON Canvas 文件创建编辑：节点、边、分组、连接，支持 Obsidian Canvas |
 | [sortspec-generator](./sortspec-generator/) | 为 Obsidian 文件夹生成 sortspec.md 排序配置文件（Custom Sort 插件） |
+
+#### 文件处理
+
+| 技能 | 描述 | 版本 |
+|------|------|------|
+| [pdf](./pdf/) | PDF 文件处理：读取/提取文本表格、合并拆分、OCR、加密解密、表单填写 | - |
+| [docx](./docx/) | Word 文档处理：创建/编辑/读取 .docx 文件，支持目录、页眉页脚、图片替换 | - |
+| [word-template-generator](./word-template-generator/) | Word 文档模板处理：提取占位符、基于模板生成文档 | v1.0.0 |
 
 #### 搜索与信息
 
 | 技能 | 描述 |
 |------|------|
 | [smart-search](./smart-search/) | 智能搜索路由器：基于 opencli 的网站/社交媒体/技术资料/新闻搜索 |
+| [defuddle](./defuddle/) | 网页内容提取：使用 Defuddle CLI 从 URL 提取干净的 Markdown 内容，节省 Token |
 | [kaoyan-info](./kaoyan-info/) | 考研信息收集、备考文档整理 |
+
+#### OpenCLI 工具
+
+| 技能 | 描述 |
+|------|------|
+| [opencli-usage](./opencli-usage/) | OpenCLI 总览入口：命令发现、通用参数、输出格式、技能选择指南 |
+| [opencli-browser](./opencli-browser/) | 浏览器驱动：通过 opencli 驱动 Chrome 浏览网页、填写表单、点击操作、截取数据 |
+| [opencli-adapter-author](./opencli-adapter-author/) | OpenCLI 适配器开发：为新站点编写适配器，从 Recon 到编码到验证全流程 |
+| [opencli-autofix](./opencli-autofix/) | OpenCLI 适配器自动修复：诊断失败命令、自动打补丁、重试验证、提交 GitHub Issue |
+
+#### MCP 构建
+
+| 技能 | 描述 |
+|------|------|
+| [mcp-builder](./mcp-builder/) | MCP 服务器构建指南：使用 FastMCP (Python) 或 MCP SDK (TypeScript) 构建高质量 MCP 服务器 |
 
 #### 维护与优化
 
@@ -139,7 +168,6 @@ L3 工具能力         ← 通用工具，跨领域复用
 |------|------|------|
 | [parse-words](./parse-words/) | 英语阅读词汇解析：从 `==highlighted==` 词汇生成词义分析段 | v1.0.0 |
 | [chapter-summary](./chapter-summary/) | 章节总结：整理数学/专业课章节笔记，生成结构化总结文件 | - |
-| [word-template-generator](./word-template-generator/) | Word文档模板处理 | v1.0.0 |
 | [knowledge-learning](./knowledge-learning/) | 通用知识学习辅助 | v1.0.0 |
 | [knowledge-base-organizer](./knowledge-base-organizer/) | Obsidian知识库组织、MOC生成 | v1.1.0 |
 
@@ -201,7 +229,7 @@ kaoyan-electronics (路由器) v2.0.0
 skill-name/
 ├── SKILL.md          # 技能定义文件（必需）
 ├── README.md         # 技能说明文档
-├── scripts/          # Python脚本（可选）
+├── scripts/          # Python/Shell脚本（可选）
 ├── templates/        # 模板文件（可选）
 └── references/       # 参考资源（可选）
 ```
@@ -217,6 +245,7 @@ skill-name/
 - "画一个流程图" → 触发 `excalidraw-diagram`
 - "整理这道错题" → 触发 `mistake-book`
 - "我这样理解对不对" → 触发 `understanding`
+- "同步一下学习进度" → 触发 `sync`
 - "帮我查一下这个信息" → 触发 `smart-search`
 
 ### 日常任务入口
@@ -280,6 +309,7 @@ skill/
 ├── kaoyan-math/                 # 考研数学路由器
 ├── kaoyan-english/              # 考研英语路由器
 ├── kaoyan-electronics/          # 电子技术基础路由器
+├── sync/                        # MemOS 同步
 ├── understanding/               # 理解验证
 ├── mistake-book/                # 错题整理
 ├── digest/                      # 学习消化
@@ -316,11 +346,27 @@ skill/
 ├── obsidian-cli/                # Obsidian CLI交互
 ├── obsidian-markdown/           # Obsidian Markdown格式
 ├── obsidian-bases/              # Obsidian Bases
+├── json-canvas/                 # JSON Canvas
 ├── sortspec-generator/          # 排序配置生成
+│
+├── # L3 文件处理
+├── pdf/                         # PDF 文件处理
+├── docx/                        # Word 文档处理
+├── word-template-generator/     # Word模板生成
 │
 ├── # L3 搜索与信息
 ├── smart-search/                # 智能搜索
+├── defuddle/                    # 网页内容提取
 ├── kaoyan-info/                 # 考研信息
+│
+├── # L3 OpenCLI 工具
+├── opencli-usage/               # OpenCLI 总览
+├── opencli-browser/             # 浏览器驱动
+├── opencli-adapter-author/      # 适配器开发
+├── opencli-autofix/             # 适配器自动修复
+│
+├── # L3 MCP 构建
+├── mcp-builder/                 # MCP 服务器构建
 │
 ├── # L3 维护与优化
 ├── skill-refactor/              # 技能重构器
@@ -332,14 +378,20 @@ skill/
 ├── # L3 其他工具
 ├── parse-words/                 # 词汇解析
 ├── chapter-summary/             # 章节总结
-├── word-template-generator/     # Word模板生成
 ├── knowledge-learning/          # 知识学习
 └── knowledge-base-organizer/    # 知识库组织
 ```
 
 ## 版本历史
 
-- **2026-07**: 技能体系重构，引入三层架构（L1/L2/L3），技能数量扩展至 40+
+- **2026-07**: 技能体系持续扩展，技能数量突破 50+
+  - 新增 L1 入口：`sync`（MemOS 进度同步）
+  - 新增 L3 文件处理：`pdf`、`docx`
+  - 新增 L3 OpenCLI 系列：`opencli-usage`、`opencli-browser`、`opencli-adapter-author`、`opencli-autofix`
+  - 新增 L3 Obsidian 工具：`json-canvas`
+  - 新增 L3 搜索工具：`defuddle`（网页内容提取）
+  - 新增 L3 MCP 构建：`mcp-builder`
+  - 确立三层架构（L1/L2/L3），技能数量扩展至 40+
   - 新增 L1 入口：`understanding`、`digest`
   - 新增 L2 子技能：`mistake-extract`、`mistake-restructure`
   - 新增 L3 工具：Obsidian 系列（`cli`/`markdown`/`bases`/`sortspec`）、`smart-search`、`skill-refactor`、`maintain-learnings`、`parse-words`、`chapter-summary`、`prompt-cache-optimizer`、`security-secret-audit`
