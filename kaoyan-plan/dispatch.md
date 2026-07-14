@@ -2,7 +2,7 @@
 
 本文档包含 kaoyan-plan 技能的跨技能协调协议（v3.2新增）。
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)
 
 ---
 
@@ -368,4 +368,4 @@ def save_unified_mistake(mistake_data, user_id):
 
 ---
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)

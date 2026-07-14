@@ -2,7 +2,7 @@
 
 本文档包含 kaoyan-plan 技能的11个详细使用示例。
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)
 
 ---
 
@@ -434,4 +434,4 @@
 
 ---
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)

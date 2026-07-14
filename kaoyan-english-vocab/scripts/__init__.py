@@ -1,9 +1,9 @@
 """
 kaoyan-english-vocab 技能代码模块
 
-版本: 2.0.0
+版本: 2.1.0
 创建日期: 2026-03-24
-最后更新: 2026-03-24
+最后更新: 2026-03-27
 
 本模块提供考研英语词汇学习的核心功能，包括：
 1. 真题语境检索
@@ -13,7 +13,7 @@ kaoyan-english-vocab 技能代码模块
 5. 单词表整理和格式化
 """
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 # 从各个子模块导出核心函数
 
@@ -29,8 +29,13 @@ from .context_retrieval import (
 # 熟词僻义检测
 from .polysemy_detector import (
     detect_polysemy,
+    detect_polysemy_batch,
+    filter_polysemy_words,
     calculate_semantic_overlap,
     calculate_exam_frequency,
+    format_polysemy_alert,
+    is_polysemy_word,
+    get_polysemy_level,
     POLYSEMY_CRITICAL,
     POLYSEMY_WARNING
 )
@@ -58,6 +63,7 @@ from .word_formatter import (
     extract_word_root,
     classify_by_frequency,
     add_polysemy_alerts,
+    add_memory_methods,
     generate_formatted_output,
     calculate_next_review_date,
     count_alerts
@@ -73,8 +79,13 @@ __all__ = [
 
     # 熟词僻义检测
     'detect_polysemy',
+    'detect_polysemy_batch',
+    'filter_polysemy_words',
     'calculate_semantic_overlap',
     'calculate_exam_frequency',
+    'format_polysemy_alert',
+    'is_polysemy_word',
+    'get_polysemy_level',
     'POLYSEMY_CRITICAL',
     'POLYSEMY_WARNING',
 
@@ -96,6 +107,7 @@ __all__ = [
     'extract_word_root',
     'classify_by_frequency',
     'add_polysemy_alerts',
+    'add_memory_methods',
     'generate_formatted_output',
     'calculate_next_review_date',
     'count_alerts',

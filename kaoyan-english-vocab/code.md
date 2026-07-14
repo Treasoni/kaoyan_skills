@@ -1,126 +1,300 @@
-# kaoyan-english-vocab 技能代码
+# kaoyan-english-vocab 执行指南
 
-**版本**: 2.0.0 (模块化重构版)
-**创建日期**: 2026-03-10
-**最后更新**: 2026-03-24
-
-## 概述
-
-本技能提供考研英语词汇学习的核心功能，代码已完全模块化。
-
-### 模块结构
-
-```
-scripts/
-├── __init__.py              # 模块导出（版本 2.0.0）
-├── context_retrieval.py     # 真题语境检索
-├── polysemy_detector.py     # 熟词僻义检测
-├── word_lookup.py           # 快速查词
-├── pdf_extractor.py         # PDF词汇提取
-└── word_formatter.py        # 单词表整理格式化
-```
-
-### 核心功能
-
-| 功能 | 模块 | 说明 |
-|------|------|------|
-| **真题语境检索** | `context_retrieval.py` | 优先使用真题语境，其次外刊，最后AI生成 |
-| **熟词僻义检测** | `polysemy_detector.py` | Critical/Warning两级预警 |
-| **快速查词** | `word_lookup.py` | 查单词、生成单词卡片 |
-| **PDF提取** | `pdf_extractor.py` | 支持墨墨/百词斩/通用格式 |
-| **单词表整理** | `word_formatter.py` | ⚠️ 必须首先执行！ |
+**版本**: 2.1.0
+**最后更新**: 2026-03-27
 
 ---
 
-## 使用方式
+## 一、完整工作流
 
-### Python导入
+### 1.0 Day 编号计算（⚠️ 步骤0之前必须先执行！）
+
+> **强制要求**：必须首先调用 `kaoyan-english-core` 的 Day 计算模块获取正确的 Day 编号！
 
 ```python
-import sys
-import os
-
-# 确保能正确导入 scripts 模块
-current_dir = os.path.dirname(os.path.abspath(__file__))
-scripts_dir = os.path.join(current_dir, "scripts")
-if scripts_dir not in sys.path:
-    sys.path.append(scripts_dir)
-
-from scripts import (
-    # 真题语境
-    generate_context_article,
-    search_real_exam_pool,
-
-    # 僻义检测
-    detect_polysemy,
-    POLYSEMY_CRITICAL,
-    POLYSEMY_WARNING,
-
-    # 查词
-    lookup_word,
-    format_word_card,
-
-    # PDF提取
-    extract_words_from_pdf,
-
-    # 单词表整理
-    organize_word_list,
+from kaoyan_english_core.day_calculator import (
+    calculate_day_number,
+    get_validated_day_number,
+    generate_day_filenames
 )
+
+# 步骤0: 获取验证后的 Day 编号
+target_date = "2026-04-06"  # 从用户输入的文件路径中提取日期
+
+# 方法1: 基于日期计算（2026-02-28 = Day 001）
+day_number_by_date = calculate_day_number(target_date)
+# 返回: 37
+
+# 方法2: 双重验证（推荐！同时检查现有文件）
+day_number = get_validated_day_number(target_date, "考研英语/📰 真题语境文章")
+# 返回: 37 (取日期计算和文件检查的较大值)
+
+# 步骤0.1: 生成四类文件名
+filenames = generate_day_filenames(target_date, day_number)
+# {
+#     "context_article": "Context-Day-037-2026-04-06.md",
+#     "quiz": "Quiz-Day-037-2026-04-06.md",
+#     "statistics": "Statistics-Day-037-2026-04-06.md",
+#     "writing": "Writing-Day-037-2026-04-06.md"
+# }
 ```
 
-### 标准工作流
+**禁止事项**:
+- ❌ 禁止手动硬编码 Day 编号（如直接写 "Day-001"）
+- ❌ 禁止使用错误的 Day 编号（必须验证连续性）
+- ❌ 禁止跳过 Day 编号计算步骤
+
+详细说明见: [docs/day-number.md](docs/day-number.md)
+
+---
+
+### 1.1 主流程（用户提供单词表时）
 
 ```
-[用户提供单词表]
+[用户提供单词表/PDF]
+        ↓
+┌───────────────────────────────────────────────────────────┐
+│ 步骤-1: Day 编号计算（⚠️ 必须首先执行！）                │
+│ • 从文件名提取日期（如 2026-4-6.md → 2026-04-06）          │
+│ • 调用 get_validated_day_number() 获取验证后的编号        │
+│ • 调用 generate_day_filenames() 生成四类文件名           │
+│ • 验证编号连续性，避免覆盖现有文件                         │
+└───────────────────────────────────────────────────────────┘
+        ↓
+┌─────────────────���─────────────────────────────────┐
+│ 步骤0: 整理和格式化单词表（必须首先执行！）         │
+│ • 格式统一化、清理多余符号                         │
+│ • 按词族分类（同源词归类）                         │
+│ • 按考研重点分级（⭐⭐⭐/⭐⭐/⭐）                  │
+│ • 添加记忆方法（100%覆盖，所有单词）               │
+│ • 添加词组搭配（每个单词2-3个）                    │
+│ • 僻义预警标记（🔴 Critical / 🟡 Warning）         │
+│ • 覆盖原始文件                                     │
+└───────────────────────────────────────────────────┘
+        ↓
+┌───────────────────────────────────────────────────┐
+│ 步骤1: 检测熟词僻义                                │
+│ • 检索 [data/polysemy-database.md](data/polysemy-database.md) │
+│ • 标记 Critical/Warning 级别                      │
+└─────────���─────────────────────────────────────────┘
+        ↓
+┌───────────────────────────────────────────────────┐
+│ 步骤2: 生成四类笔记（使用步骤-1计算的 Day 编号！）  │
+│ ├── 📊 词汇统计 → 考研英语/📊 词汇统计/            │
+│ ├── 📰 真题语境文章 → 考研英语/📰 真题语境文章/    │
+│ ├── 📝 测试记录 → 考研英语/📝 测试记录/            │
+│ └── ✍️ 写作输出 → 考研英语/✍️ 写作输出/            │
+└───────────────────────────────────────────────────┘
+```
+
+### 1.2 快速查词流程
+
+```
+[用户查询单词]
       ↓
-[步骤0: organize_word_list] ← 必须首先执行！
+[获取基本信息：音标、词性、释义]
       ↓
-[覆盖原始单词表文件]
+[检测僻义：查询 polysemy-database.md]
       ↓
-[步骤1: detect_polysemy]
+[获取真题例句（如有）]
       ↓
-[步骤2: generate_context_article + 生成四类笔记]
+[输出紧凑的单词卡片]
 ```
 
 ---
 
-## 关键数据结构
+## 二、输出规范
 
-### 僻义预警数据
+### 2.1 四类笔记路径（强制）
 
-**Critical级别（高频陷阱）**:
-- address: 地址 → vt. 处理，解决 (80%)
-- school: 学校 → n. 流派，学派 (70%)
-- novel: 新颖的 → n. 长篇小说 (65%)
-- fine: 好的 → n./v. 罚款 (60%)
+> 详见 [docs/output-paths.md](docs/output-paths.md)
 
-**Warning级别（中等陷阱）**:
-- spring: 春天 → v. 突然出现，涌现 (40%)
-- table: 桌子 → v. 搁置，暂缓讨论 (35%)
-- book: 书 → v. 预订 (30%)
+| 笔记类型 | 文件名格式 | 必须存放路径 |
+|----------|-----------|--------------|
+| 📊 词汇统计 | `Statistics-Day-{XXX}-{YYYY-MM-DD}.md` | `考研英语/📊 词汇统计/` |
+| 📰 真题语境文章 | `Context-Day-{XXX}-{YYYY-MM-DD}.md` | `考研英语/📰 真题语境文章/` |
+| 📝 测试记录 | `Quiz-Day-{XXX}-{YYYY-MM-DD}.md` | `考研英语/📝 测试记录/` |
+| ✍️ 写作输出 | `Writing-Day-{XXX}-{YYYY-MM-DD}.md` | `考研英语/✍️ 写作输出/` |
 
----
+### 2.2 Day编号计算
 
-## 验证标准
+> 详见 [docs/day-number.md](docs/day-number.md)
 
-1. ✅ 必须在生成四类笔记**之前**执行单词表整理
-2. ✅ 整理后的单词表必须覆盖原始文件
-3. ✅ 必须按词族分类
-4. ✅ 必须按考研重点分级（⭐⭐⭐ / ⭐⭐ / ⭐）
-5. ✅ 必须检测并标记僻义预警（🔴 Critical / 🟡 Warning）
+- 基准日期：2026-02-28 = Day-001
+- 计算公式：`Day编号 = (当前日期 - 基准日期).days + 1`
 
 ---
 
-## 完整API文档
+## 三、格式规范
 
-详见各模块源码：
-- `scripts/context_retrieval.py` - 真题语境检索
-- `scripts/polysemy_detector.py` - 僻义检测算法
-- `scripts/word_lookup.py` - 查词功能
-- `scripts/pdf_extractor.py` - PDF解析
-- `scripts/word_formatter.py` - 单词表整理
+### 3.1 整理版单词表格式
+
+> 完整模板见 [templates/formatted-wordlist.md](templates/formatted-wordlist.md)
+
+```markdown
+# 考研英语单词表 - Day {XX}
+
+**日期**: {YYYY-MM-DD}
+**词汇量**: {N}词
+**来源**: 单词整理
+**距离考试**: {N}天
 
 ---
 
-*备份文件*: `code.md.backup` (v1.1.0 完整版)
-*当前版本*: v2.0.0 (模块化重构版)
+## ⭐⭐⭐ 高频词（必考词汇）
+
+### 词族1: {词族名}族（{N}词）
+
+#### {单词名} ⭐⭐⭐
+**词性** 释义
+
+| 词组搭配 | 释义 |
+|---------|------|
+| 搭配1 | 释义1 |
+| 搭配2 | 释义2 |
+
+> 🧠 **记忆方法**
+> - **词根**：xxx（如果适用）
+> - **联想**：xxx
+> - **同根词**：xxx
+
+> ⚠️ **僻义预警** [warning/critical]
+> - 常见义：xxx
+> - 考研僻义：xxx
+
+---
+```
+
+### 3.2 记忆方法格式（强制）
+
+**所有单词必须包含记忆方法块：**
+
+```markdown
+> 🧠 **记忆方法**
+> - **词根词缀**：{词根} + {后缀} = {含义}
+> - **联想记忆**：{联想方法}
+> - **同根词**：{同根词列表}
+```
+
+**记忆方法类型优先级**：
+1. 词根词缀法（优先，如有明确词根）
+2. 联想记忆法（次选）
+3. 谐音记忆法（特殊情况）
+
+### 3.3 僻义预警格式
+
+```markdown
+> ⚠️ **僻义预警** [critical]
+> - **常见义**：地址
+> - **考研僻义**：vt. 处理，解决
+> - **考频**：80%
+```
+
+**预警级别**：
+- 🔴 **Critical**：考研中出现频率 > 50%，必须重点记忆
+- 🟡 **Warning**：考研中出现频率 30-50%，需要留意
+
+---
+
+## 四、真题语境检索策略
+
+### 4.1 检索优先级
+
+```
+1. 真题语境池（考研英语/📚 真题语境池/）
+   └── 优先近5年真题
+        ↓（未找到）
+2. 外刊同源库（考研英语/📰 外刊同源库/）
+   └── The Economist → The Guardian → TIME
+        ↓（未找到）
+3. AI生成（模拟外刊风格）
+   └── 风格：The Economist
+```
+
+### 4.2 语境文章要求
+
+- ✅ 必须包含**所有目标单词**
+- ✅ **译文位置**：紧接原文之后，词汇解析表之前
+- ✅ 风格模拟考研真题阅读理解
+- ✅ 高亮目标词汇（`**word**` 格式）
+
+---
+
+## 五、熟词僻义检测
+
+### 5.1 数据来源
+
+僻义词库：[data/polysemy-database.md](data/polysemy-database.md)
+
+### 5.2 检测逻辑
+
+```python
+def detect_polysemy(word):
+    # 1. 检索僻义词库
+    if word in POLYSEMY_CRITICAL:
+        return {"level": "critical", ...}
+    elif word in POLYSEMY_WARNING:
+        return {"level": "warning", ...}
+    return None
+```
+
+### 5.3 僻义词库示例
+
+| 单词 | 常见义 | 考研僻义 | 频率 |
+|------|--------|----------|------|
+| address | 地址 | vt. 处理，解决 | 80% |
+| school | 学校 | n. 流派，学派 | 70% |
+| novel | 新颖的 | n. 长篇小说 | 65% |
+
+---
+
+## 六、验证清单
+
+执行完成后，检查以下项目：
+
+| 检查项 | 要求 |
+|--------|------|
+| ☐ **Day 编号正确** | **必须先调用 `get_validated_day_number()` 计算编号（禁止手动填写！）** |
+| ☐ **单词数量一致** | **输入N个单词 → 输出必须是N个单词（禁止过滤任何单词！）** |
+| ☐ 单词表覆盖 | 整理后的单词表已覆盖原始文件 |
+| ☐ 词族分类 | 所有单词按词族归类 |
+| ☐ 频率分级 | ⭐⭐⭐/⭐⭐/⭐ 三级分类完成 |
+| ☐ 记忆方法 | 100%单词有 `> 🧠 **记忆方法**` 块 |
+| ☐ 僻义预警 | 所有僻义词已标记 🔴/🟡 |
+| ☐ 词组搭配 | 每个单词有2-3个搭配 |
+| ☐ 四类笔记 | 输出到正确的目录 |
+| ☐ 文件命名 | 符合 `Type-Day-XXX-YYYY-MM-DD.md` 格式，使用计算的 Day 编号 |
+
+### ⚠️ 单词数量强制验证规则
+
+**禁止任何形式的单词过滤！**
+
+1. **输入输出数量必须相等**：如果输入单词表有100个单词，输出必须是100个单词
+2. **禁止去重**：即使有重复单词也必须保留（用户可能故意重复以加强记忆）
+3. **禁止跳过**：所有单词都必须处理，无论格式是否标准
+4. **验证方法**：
+   ```python
+   # 整理前后必须核对数量
+   input_count = count_words_in_raw_content(raw_content)
+   output_count = count_words_in_output(output_content)
+   assert input_count == output_count, f"单词数量不一致！输入{input_count}个，输出{output_count}个"
+   ```
+
+---
+
+## 七、模块索引
+
+Python 模块位于 `scripts/` 目录：
+
+| 模块 | 功能 |
+|------|------|
+| `word_formatter.py` | 单词表整理和格式化 |
+| `polysemy_detector.py` | 熟词僻义检测 |
+| `context_retrieval.py` | 真题语境检索 |
+| `word_lookup.py` | 快速查词 |
+| `pdf_extractor.py` | PDF词汇提取 |
+
+---
+
+*版本: 2.1.0*
+*最后更新: 2026-03-27*

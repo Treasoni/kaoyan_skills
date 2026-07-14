@@ -2,7 +2,7 @@
 
 本文档包含 kaoyan-plan 技能的7大核心功能详细说明。
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)
 
 ---
 
@@ -322,4 +322,4 @@ def split_large_time_block(duration, subject):
 
 ---
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)

@@ -466,16 +466,23 @@ def update_english_progress_file(english_tasks: List[Dict[str, Any]]) -> None:
                                 lines[i] = line
                             break
 
-            # 添加新学任务的次日复习计划
-            tomorrow = (datetime.now() + timedelta(days=1)).strftime("%m-%d")
-            for task in english_tasks:
-                if task["review_count"] == "新学":
-                    day = task["day"]
-                    vocab_count = task["vocab_count"]
-                    new_row = f"| **{tomorrow}** | Day {day} | 第1次 | ~{vocab_count}词 | 1天 | ⭐ **明日** |"
+            # 【v3.15.0 修复】根据完成的复习类型，生成后续复习计划
+            # 新学 -> 第1次复习（明天）
+            # 第1次复习 -> 第2次复习（3天后）
+            # 第2次复习 -> 第3次复习（7天后）
+            today_date = datetime.now()
 
-                    # 检查是否已存在
-                    exists = any(f"Day {day}" in line for line in lines[pending_table_start:today_section_start])
+            for task in english_tasks:
+                day = task["day"]
+                vocab_count = task["vocab_count"]
+                review_type = task["review_count"]
+
+                # 生成后续复习计划
+                new_rows = generate_future_review_plans(day, vocab_count, review_type, today_date)
+
+                for new_row in new_rows:
+                    # 检查是否已存在相同的复习计划
+                    exists = any(f"Day {day}" in line and line in lines[pending_table_start:today_section_start])
                     if not exists:
                         # 找到合适的插入位置（按日期排序）
                         insert_idx = today_section_start - 1
@@ -483,7 +490,7 @@ def update_english_progress_file(english_tasks: List[Dict[str, Any]]) -> None:
                             if lines[insert_idx].strip().startswith('|'):
                                 # 提取当前行的日期
                                 date_match = re.search(r'\|\s*\*{0,2}(\d{2}-\d{2})\*{0,2}\s*\|', lines[insert_idx])
-                                if date_match and date_match.group(1) > tomorrow:
+                                if date_match and date_match.group(1) > new_row.split('|')[1].strip():
                                     break
                             insert_idx -= 1
                         lines.insert(insert_idx + 1, new_row)
@@ -764,6 +771,150 @@ def extract_progress(content: str, keyword: str) -> float:
     if match:
         return float(match.group(1).rstrip('%'))
     return 0.0
+
+
+def generate_future_review_plans(day: str, vocab_count: int, current_review_type: str,
+                                  current_review_date: datetime) -> List[str]:
+    """
+    生成后续复习计划（v3.15.0 新增）
+
+    根据 SM-2 算法生成完整的复习计划：
+    - 第1次复习：学习后1天
+    - 第2次复习：第1次复习后3天（累计4天）
+    - 第3次复习：第2次复习后7天（累计11天）
+
+    参数:
+        day: Day 编号（如 "030"）
+        vocab_count: 词汇数量
+        current_review_type: 当前完成的复习类型（"新学"/"第1次"/"第2次"）
+        current_review_date: 当前复习日期
+
+    返回:
+        需要添加的复习计划行列表（Markdown 表格行）
+    """
+    new_rows = []
+
+    if current_review_type == "新学":
+        # 新学完成后，生成第1次复习计划（1天后）
+        next_date = (current_review_date + timedelta(days=1)).strftime("%m-%d")
+        new_rows.append(f"| **{next_date}** | Day {day} | 第1次 | ~{vocab_count}词 | 1天 | ⭐ **明日** |")
+
+    elif current_review_type == "第1次":
+        # 第1次复习完成后，生成第2次复习计划（3天后）
+        next_date = (current_review_date + timedelta(days=3)).strftime("%m-%d")
+        new_rows.append(f"| **{next_date}** | Day {day} | 第2次 | ~{vocab_count}词 | 3天 | ⭐ **第2次** |")
+
+    elif current_review_type == "第2次":
+        # 第2次复习完成后，生成第3次复习计划（7天后）
+        next_date = (current_review_date + timedelta(days=7)).strftime("%m-%d")
+        new_rows.append(f"| **{next_date}** | Day {day} | 第3次 | ~{vocab_count}词 | 7天 | ⭐ **第3次** |")
+
+    return new_rows
+
+
+def generate_makeup_review_plan(progress_file: str = "考研英语/📊 学习进度.md") -> List[Dict[str, Any]]:
+    """
+    扫描学习进度文件，找出逾期需要复习的任务（v3.15.0 新增）
+
+    功能：
+        1. 读取学习进度文件
+        2. 分析复习历史记录，找出每个Day的最后一次复习
+        3. 根据 SM-2 算法计算是否需要复习
+        4. 返回逾期任务列表
+
+    参数:
+        progress_file: 学习进度文件路径
+
+    返回:
+        逾期任务列表，每个任务包含:
+        - day: Day 编号
+        - last_review_type: 最后一次复习类型
+        - last_review_date: 最后一次复习日期
+        - next_review_type: 下一次应该复习的类型
+        - expected_date: 应该复习的日期
+        - days_overdue: 逾期天数
+        - vocab_count: 词汇数量
+    """
+    makeup_tasks = []
+    today = datetime.now()
+
+    try:
+        with open(progress_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # 解析复习历史记录，找出每个Day的复习状态
+        # 格式：| 03-30 | Day 029 | 第1次 | ~75词 | ...
+        day_review_status = {}  # {day: {last_review_type, last_review_date}}
+
+        for line in content.split('\n'):
+            if line.strip().startswith('|') and 'Day' in line:
+                # 匹配格式：| **03-30** | **Day 029** | **第1次** |
+                match = re.search(r'\|\s*\*{0,2}(\d{2}-\d{2})\*{0,2}\s*\|\s*\*{0,2}Day\s*(\d+)\*{0,2}\s*\|\s*\*{0,2}(第\d+次|新学)\*{0,2}\s*\|', line)
+                if match:
+                    date_str = match.group(1)
+                    day_num = match.group(2).zfill(3)
+                    review_type = match.group(3)
+
+                    # 解析日期（假设年份为2026）
+                    try:
+                        review_date = datetime.strptime(f"2026-{date_str}", "%Y-%m-%d")
+                    except:
+                        continue
+
+                    # 更新该Day的复习状态
+                    if day_num not in day_review_status:
+                        day_review_status[day_num] = {
+                            "last_review_type": review_type,
+                            "last_review_date": review_date,
+                            "vocab_count": 50  # 默认值
+                        }
+                    else:
+                        # 保留最新的复习记录
+                        if review_date > day_review_status[day_num]["last_review_date"]:
+                            day_review_status[day_num]["last_review_type"] = review_type
+                            day_review_status[day_num]["last_review_date"] = review_date
+
+        # 检查每个Day是否需要复习
+        for day_num, status in day_review_status.items():
+            last_type = status["last_review_type"]
+            last_date = status["last_review_date"]
+
+            # 根据最后一次复习类型，计算下一次复习日期
+            if last_type == "新学":
+                next_type = "第1次"
+                next_date = last_date + timedelta(days=1)
+            elif last_type == "第1次":
+                next_type = "第2次"
+                next_date = last_date + timedelta(days=3)
+            elif last_type == "第2次":
+                next_type = "第3次"
+                next_date = last_date + timedelta(days=7)
+            else:
+                # 第3次已完成，暂不生成后续计划
+                continue
+
+            # 检查是否逾期
+            if next_date.date() <= today.date():
+                days_overdue = (today.date() - next_date.date()).days
+                makeup_tasks.append({
+                    "day": day_num,
+                    "last_review_type": last_type,
+                    "last_review_date": last_date.strftime("%m-%d"),
+                    "next_review_type": next_type,
+                    "expected_date": next_date.strftime("%m-%d"),
+                    "days_overdue": days_overdue,
+                    "vocab_count": status["vocab_count"]
+                })
+
+        # 按逾期天数排序（逾期越久越优先）
+        makeup_tasks.sort(key=lambda x: x["days_overdue"], reverse=True)
+
+    except FileNotFoundError:
+        log_warning(f"学习进度文件不存在：{progress_file}")
+    except Exception as e:
+        log_warning(f"扫描逾期复习任务失败：{e}")
+
+    return makeup_tasks
 
 
 def log_info(message: str) -> None:

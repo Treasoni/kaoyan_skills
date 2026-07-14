@@ -1,0 +1,67 @@
+{
+  "categories": {
+    "泰勒展开/精度控制": {
+      "keywords": ["泰勒", "Taylor", "精度", "阶数", "展开式", "余项"],
+      "icon": "🔢"
+    },
+    "递推/区间转化": {
+      "keywords": ["递推", "区间", "转化", "周期", "对称", "分段"],
+      "icon": "🔄"
+    },
+    "反三角函数": {
+      "keywords": ["反三角", "arcsin", "arccos", "arctan", "主值", "诱导公式"],
+      "icon": "📐"
+    },
+    "极限/间断点": {
+      "keywords": ["极限", "间断", "连续", "可去", "跳跃", "无穷"],
+      "icon": "📊"
+    },
+    "无穷小比较": {
+      "keywords": ["无穷小", "等价", "高阶", "���阶", "同阶"],
+      "icon": "📈"
+    },
+    "导数/微分": {
+      "keywords": ["导数", "微分", "切线", "可导", "连续"],
+      "icon": "📉"
+    },
+    "积分计算": {
+      "keywords": ["积分", "定积分", "不定积分", "换元", "分部"],
+      "icon": "∫"
+    },
+    "综合应用": {
+      "keywords": ["综合", "应用", "结合"],
+      "icon": "🎯"
+    }
+  },
+  "relation_rules": [
+    {
+      "pattern": ["泰勒", "等价无穷小"],
+      "category": "泰勒展开/精度控制",
+      "strength": "strong"
+    },
+    {
+      "pattern": ["递推", "区间"],
+      "category": "递推/区间转化",
+      "strength": "strong"
+    },
+    {
+      "pattern": ["反三角", "诱导公式"],
+      "category": "反三角函数",
+      "strength": "medium"
+    },
+    {
+      "pattern": ["间断点", "连续"],
+      "category": "极限/间断点",
+      "strength": "strong"
+    }
+  ],
+  "index_template": {
+    "header": "## 📚 按知识点分类索引\n\n",
+    "category_format": "### {icon} {category}\n\n| 序号 | 错题标题 | 核心陷阱 | 难度 |\n|------|----------|----------|------|\n{items}\n\n"
+  },
+  "mermaid_template": {
+    "header": "## 🔗 错题关联网络\n\n```mermaid\ngraph LR\n{edges}\n```\n\n",
+    "edge_format": "    {source}[{source_title}] -->|{relation}| {target}[{target_title}]"
+  },
+  "backup_suffix": "_backup_{date}"
+}

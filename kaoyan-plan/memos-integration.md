@@ -2,7 +2,7 @@
 
 本文档包含 kaoyan-plan 技能的 MemOS 记忆系统集成规范。
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)
 
 ---
 
@@ -222,4 +222,4 @@ review_data:
 
 ---
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)

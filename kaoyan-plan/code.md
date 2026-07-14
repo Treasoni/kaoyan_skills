@@ -2,7 +2,7 @@
 
 本文档提供 kaoyan-plan 技能的入口逻辑。具体算法实现已模块化至 `scripts/` 目录下。
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)
 
 ---
 
@@ -149,6 +149,9 @@ def process_completion_report(user_id, completed_tasks_raw, planned_tasks):
 | `parse_user_completion_report()` | 解析用户完成报告 |
 | `extract_english_tasks()` | 提取英语学习任务 |
 | `update_english_progress_file()` | 更新英语学习进度 |
+|   - **复习历史记录**：为每个完成的任务（无论是"复习"还是"新学"）添加一行记录
+   - **待进行复习安排**：标记已完成 + 添加新复习计划
+   - **今日完成情况**：更新 callout 块内容 |
 | `check_electronics_progress()` | 检查专业课进度 |
 
 ### 规则引擎函数
@@ -189,4 +192,4 @@ def process_completion_report(user_id, completed_tasks_raw, planned_tasks):
 
 ---
 
-> 📋 **返回主文档**: [skill.md](skill.md)
+> 📋 **返回主文档**: [SKILL.md](SKILL.md)

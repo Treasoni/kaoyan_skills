@@ -1,0 +1,23 @@
+{
+  "skill_name": "sortspec-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "为 /Users/zhqznc/Documents/项目/linux 文件夹生成 sortspec",
+      "expected_output": "生成 sortspec.md 文件，linux MOC 置顶，按入门→基础→进阶→排查顺序排列",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我给 Git 文件夹创建排序配置",
+      "expected_output": "扫描 Git 文件夹，识别 MOC 和教程文件，生成 sortspec.md",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "/Users/zhqznc/Documents/项目/docker 这个文件夹需要 sortspec 排序",
+      "expected_output": "扫描 docker 文件夹，按逻辑顺序生成 sortspec.md",
+      "files": []
+    }
+  ]
+}
